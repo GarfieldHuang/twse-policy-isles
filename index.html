@@ -1,0 +1,2441 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>證交所政策島</title>
+<meta name="description" content="非官方教育導覽：把臺灣證券交易所的市場制度與政策專區做成一座黏土風 3D 六角島城市。">
+<script>
+/* =====================================================================
+   DATA：整座城市完全由這個物件驅動。
+   非官方示範，事實以臺灣證券交易所官網公告為準；查不到的數字標「待查證」。
+   facts 每條以「中文|English」書寫。status：live 已上線、progress 推動中、plan 規劃中。
+   model：細項的模型種類（archetype），程式依此建模，不寫死對應。
+   ===================================================================== */
+const DATA = {
+  city: { name: "資本市場城", en: "Capital Market City", sub: "證交所政策島", subEn: "TWSE Policy Isles",
+    site: "https://www.twse.com.tw/zh/index.html", siteEn: "https://www.twse.com.tw/en/" },
+  islands: [
+    { id: "trade", no: 1, name: "交易制度", en: "Trading Mechanisms", q: 0, r: 0, color: "#db6a41", ground: "brick", tree: "round",
+      summary: "股票怎麼下單、何時撮合、零股和盤後怎麼買，都在這座島。",
+      summaryEn: "How orders are placed and matched: board lots, odd lots and after-hours sessions.",
+      items: [
+        { id: "t1", name: "整股交易", en: "Regular Board-lot Trading", model: "exchange", status: "live",
+          desc: "一般買賣以 1 張（1,000 股）為單位，開盤收盤用集合競價，盤中逐筆撮合。",
+          descEn: "Regular trading in lots of 1,000 shares: call auctions at open and close, continuous matching in between.",
+          facts: ["撮合時間 9:00–13:30，委託自 8:30 起|Matching 9:00–13:30; orders from 8:30",
+                  "盤中 9:00–13:25 採逐筆交易，收盤 13:25–13:30 集合競價|Continuous trading 9:00–13:25; closing call auction 13:25–13:30",
+                  "每日漲跌幅以開盤競價基準的 10% 為限|Daily price limit: 10% of the opening reference price"],
+          url: "https://www.twse.com.tw/zh/products/system/trading.html" },
+        { id: "t2", name: "盤中零股", en: "Intraday Odd-lot Trading", model: "clock", status: "progress",
+          desc: "不到 1 張也能在盤中買賣，用 1 股為單位，小資族也能慢慢存股。",
+          descEn: "Buy or sell fewer than 1,000 shares during market hours, one share at a time.",
+          facts: ["自 2020 年 10 月 26 日起實施|Launched 26 Oct 2020",
+                  "現制 9:10 第一次撮合，之後每 5 秒集合競價一次|Currently first match at 9:10, then a call auction every 5 seconds",
+                  "自 115 年 12 月 7 日起提前至上午 9 時開盤、與整股同步（以官網公告為準）|From 7 Dec 2026 it opens at 9:00 alongside board lots (per TWSE notice)"],
+          url: "https://www.twse.com.tw/zh/products/system/trading.html#sec04" },
+        { id: "t3", name: "盤後定價交易", en: "After-hours Fixed-price Trading", model: "house", status: "live",
+          desc: "收盤後還想買賣？用當天收盤價下單，14:30 一次撮合。",
+          descEn: "Trade after the close at the day's closing price, matched once at 14:30.",
+          facts: ["委託時間 14:00–14:30，14:30 撮合|Orders 14:00–14:30, matched at 14:30",
+                  "以當日收盤價格成交|Executed at the day's closing price",
+                  "成交優先順序依電腦隨機排列|Priority is set by random computer sequencing"],
+          url: "https://www.twse.com.tw/zh/products/system/trading.html#sec03" },
+        { id: "t4", name: "盤後零股交易", en: "After-hours Odd-lot Trading", model: "coin", status: "live",
+          desc: "收盤後的零股時段，下午 2 點半一次集合競價。",
+          descEn: "An after-close odd-lot session settled by one call auction at 14:30.",
+          facts: ["申報時間 13:40–14:30|Orders 13:40–14:30",
+                  "14:30 後以集合競價一次撮合|One call auction after 14:30",
+                  "以 1 股為一交易單位|Trading unit: 1 share"],
+          url: "https://www.twse.com.tw/zh/products/system/trading.html#sec05" },
+        { id: "t5", name: "當日沖銷", en: "Day Trading", model: "hall", status: "live",
+          desc: "同一天買進又賣出同一檔股票，只結算差額。風險高，要先了解規則。",
+          descEn: "Buy and sell the same stock on the same day and settle only the difference. High risk.",
+          facts: ["103 年 1 月 6 日起開放現股先買後賣當沖|Buy-first day trading allowed from 6 Jan 2014",
+                  "103 年 6 月 30 日起開放先賣後買當沖|Sell-first day trading allowed from 30 Jun 2014",
+                  "證券交易稅優惠的稅率與期限（待查證）|Transaction-tax relief rate and period (to be verified)"],
+          url: "https://www.twse.com.tw/zh/products/system/day-trading.html" }
+      ] },
+    { id: "index", no: 2, name: "指數資訊", en: "Indices", q: 1, r: -1, color: "#58a6a6", ground: "stripe", tree: "pine",
+      summary: "大盤漲跌怎麼算？加權指數、臺灣 50 等指數在這裡編製與公布。",
+      summaryEn: "How the market is measured: TAIEX, FTSE TWSE Taiwan 50 and other indices.",
+      items: [
+        { id: "i1", name: "發行量加權股價指數", en: "TAIEX", model: "indexTower", status: "live",
+          desc: "俗稱「大盤」，用上市股票的市值加權算出整體市場的漲跌。",
+          descEn: "The headline index of the TWSE market, weighted by market capitalisation.",
+          facts: ["官網提供每 5 秒指數盤後統計|5-second index statistics are published after the close",
+                  "另有發行量加權股價報酬指數|A total-return version of TAIEX is also published",
+                  "基期與基值（待查證）|Base date and base value (to be verified)"],
+          url: "https://www.twse.com.tw/zh/indices/taiex/mi-5min-hist.html" },
+        { id: "i2", name: "臺灣 50 等指數", en: "Taiwan 50 & Partner Indices", model: "podium", status: "live",
+          desc: "與富時（FTSE）合編的臺灣 50、中型 100、高股息等指數，很多 ETF 都追蹤它們。",
+          descEn: "Indices co-compiled with FTSE, such as Taiwan 50, Mid-Cap 100 and High Dividend, tracked by many ETFs.",
+          facts: ["合編指數含臺灣 50、中型 100、資訊科技、發達、高股息|Co-compiled: Taiwan 50, Mid-Cap 100, Technology, EX, High Dividend",
+                  "也編有臺灣公司治理 100、就業 99、高薪 100 指數|Also: Corporate Governance 100, Employment 99, High Compensation 100",
+                  "成分股數與調整頻率（待查證）|Constituent counts and review schedule (to be verified)"],
+          url: "https://www.twse.com.tw/zh/indices/ftse/tai50i.html" },
+        { id: "i3", name: "臺灣指數公司", en: "Taiwan Index Plus", model: "office", status: "live",
+          desc: "專門編製與授權指數的公司，也經營 IR 議合服務平台。",
+          descEn: "The index company that compiles and licenses indices, and runs the IR engagement platform.",
+          facts: ["IR 議合服務平台設於臺灣指數公司網站|The IR engagement platform is hosted on its site",
+                  "推出璞玉系列指數|Publishes the Jade series of indices",
+                  "成立時間（待查證）|Year founded (to be verified)"],
+          url: "https://www.twse.com.tw/zh/indices/indices/series.html" },
+        { id: "i4", name: "指數走勢圖", en: "Index Chart", model: "screen", status: "live",
+          desc: "官網首頁就能看大盤當天走勢。本示範裡的線條只是示意。",
+          descEn: "The TWSE homepage shows the index chart. Lines in this demo are illustrative only.",
+          facts: ["官網首頁設有指數走勢區塊|The homepage has an index chart section",
+                  "本示範不提供即時行情（示意）|No live quotes in this demo (illustrative)"],
+          url: "https://www.twse.com.tw/zh/index.html#index-chart" }
+      ] },
+    { id: "listing", no: 3, name: "上市與 IPO", en: "Listing & IPO", q: 0, r: -1, color: "#f2b5c6", ground: "speck", tree: "sakura",
+      summary: "公司從申請上市到掛牌的每一步，以及上市後的公司資訊。",
+      summaryEn: "From applying for a listing to the first trading day, plus company information after listing.",
+      items: [
+        { id: "l1", name: "新上市證券", en: "Newly Listed Securities", model: "gate", status: "live",
+          desc: "新公司掛牌的大門。新上市普通股前五天沒有漲跌幅限制。",
+          descEn: "The gateway for new listings. New common shares have no price limit for their first five days.",
+          facts: ["初次上市普通股首五個交易日無漲跌幅限制|No price limit for the first 5 trading days of a new listing",
+                  "首五日不實施盤中瞬間價格穩定措施|No intraday volatility interruption in those 5 days",
+                  "國內公司申請上市有標準與流程專頁|Listing standards and flow are published for domestic firms"],
+          url: "https://www.twse.com.tw/zh/focus/newly.html" },
+        { id: "l2", name: "IPO／SPO 資訊揭露專區", en: "IPO/SPO Disclosure", model: "magnifier", status: "live",
+          desc: "承銷與增資前的資訊集中公開，讓投資人看清楚再決定。",
+          descEn: "Underwriting and offering information gathered in one place before you decide.",
+          facts: ["專區設於公開資訊觀測站系統|Hosted within the MOPS system",
+                  "揭露項目與時點（待查證）|Disclosure items and timing (to be verified)"],
+          url: "https://mopsov.twse.com.tw/ipospoinform#home" },
+        { id: "l3", name: "上市公司整合資訊", en: "Listed Company Profiles", model: "book", status: "live",
+          desc: "輸入股票代碼，就能查到上市公司的基本資料與相關資訊。",
+          descEn: "Look up a listed company's profile and related data by its stock code.",
+          facts: ["可用代碼查詢個別上市公司|Search by stock code",
+                  "重大訊息可在公開資訊觀測站查詢|Material news is on MOPS"],
+          url: "https://www.twse.com.tw/zh/listed/profile/company.html" },
+        { id: "l4", name: "上市公司條件選股", en: "Stock Screener", model: "screen", status: "live",
+          desc: "依指標篩出符合條件的公司。這是查詢工具，不是推薦名單。",
+          descEn: "Filter companies by indicators. A lookup tool, not a recommendation list.",
+          facts: ["指標含收盤價、成交量、三大法人、融資融券|Indicators: close, volume, institutional flows, margin",
+                  "也可用月營收成長率與月週轉率篩選|Also monthly revenue growth and monthly turnover",
+                  "本示範不提供任何選股建議|This demo gives no stock picks"],
+          url: "https://www.twse.com.tw/zh/listed/selection-criteria.html" }
+      ] },
+    { id: "tib", no: 4, name: "臺灣創新板", en: "Taiwan Innovation Board (TIB)", q: -1, r: -1, color: "#9cc27a", ground: "speck", tree: "fruit",
+      summary: "讓有關鍵技術或創新模式的企業進入資本市場籌資的板塊。",
+      summaryEn: "A board for companies with key core technologies or innovative business models to raise capital.",
+      items: [
+        { id: "b1", name: "臺灣創新板（TIB）", en: "Taiwan Innovation Board", model: "greenhouse", status: "live",
+          desc: "像溫室一樣培育創新企業：AI、資安、智慧醫療、綠能等新經濟公司。",
+          descEn: "A greenhouse for innovators: AI, cybersecurity, smart healthcare, green energy and more.",
+          facts: ["證交所自 2021 年推出創新板|Launched by TWSE in 2021",
+                  "鎖定 AI、物聯網、資安、智慧醫療、機器人等領域|Targets AI, IoT, cybersecurity, smart healthcare, robotics",
+                  "設有股票造市者制度|Has a market-maker system"],
+          url: "https://www.twse.com.tw/TIB/zh/index.html" },
+        { id: "b2", name: "創新板上市聚落", en: "TIB Listing Cluster", model: "rocket", status: "progress",
+          desc: "吸引海外優質創新企業來臺掛牌，形成創新企業聚落。",
+          descEn: "Attracting overseas innovators to list in Taiwan and form a cluster.",
+          facts: ["目標是成為亞洲創新企業上市首選平台|Aims to be Asia's go-to listing venue for innovators",
+                  "設有亞洲創新籌資平臺專頁|Has an Asia innovation fundraising page",
+                  "海外企業掛牌家數（待查證）|Number of overseas listings (to be verified)"],
+          url: "https://www.twse.com.tw/TIB/zh/asia.html" },
+        { id: "b3", name: "創新板開放當沖", en: "TIB Day Trading", model: "clock", status: "live",
+          desc: "創新板股票也能當日沖銷了。",
+          descEn: "Day trading is now allowed for TIB stocks.",
+          facts: ["114 年 11 月 17 日起創新板開放當沖交易|Day trading on TIB from 17 Nov 2025",
+                  "交易資格與規則以官網為準（待查證）|Eligibility and rules per TWSE (to be verified)"],
+          url: "https://www.twse.com.tw/TIB/zh/mechanism.html" }
+      ] },
+    { id: "etf", no: 5, name: "ETF 與 e添富", en: "ETFs & ETFortune", q: 2, r: -1, color: "#fcea8b", ground: "stripe", tree: "palm",
+      summary: "一籃子股票裝在一起買。e添富把 ETF 資訊整理成一站式平台。",
+      summaryEn: "A basket of stocks in one trade. ETFortune gathers ETF information in one place.",
+      items: [
+        { id: "e1", name: "e添富 ETF 平台", en: "ETFortune Platform", model: "basket", status: "live",
+          desc: "一站式 ETF 整合資訊平台，基本資料、配息、篩選都在這裡。",
+          descEn: "A one-stop ETF information platform: profiles, distributions and screening.",
+          facts: ["可依代碼查詢 ETF 基本資料|Look up ETF profiles by code",
+                  "上市 ETF 檔數（待查證）|Number of listed ETFs (to be verified)"],
+          url: "https://www.twse.com.tw/zh/ETFortune/index" },
+        { id: "e2", name: "配息資訊", en: "Distribution Calendar", model: "coin", status: "live",
+          desc: "哪檔 ETF 什麼時候配息，用行事曆一眼看完。",
+          descEn: "See when each ETF pays distributions on a calendar.",
+          facts: ["e添富提供配息行事曆|ETFortune provides a distribution calendar",
+                  "官網觀點專欄討論過 ETF 收益平準金|TWSE insights have covered ETF income equalisation"],
+          url: "https://www.twse.com.tw/zh/ETFortune/dividendCalendar" },
+        { id: "e3", name: "投資篩選器", en: "ETF Screener", model: "magnifier", status: "live",
+          desc: "依條件篩選 ETF，方便比較。這不是買賣建議。",
+          descEn: "Filter and compare ETFs. Not investment advice.",
+          facts: ["可依多種條件篩選 ETF|Filter ETFs by several criteria",
+                  "篩選條件項目（待查證）|Available criteria (to be verified)"],
+          url: "https://www.twse.com.tw/zh/ETFortune/products" },
+        { id: "e4", name: "達人講 BAR", en: "Expert Talk BAR", model: "meeting", status: "live",
+          desc: "專家用白話講 ETF，適合入門。",
+          descEn: "Experts explain ETFs in plain language.",
+          facts: ["以專家觀點與教學內容為主|Expert views and tutorials",
+                  "內容更新頻率（待查證）|Update frequency (to be verified)"],
+          url: "https://www.twse.com.tw/zh/ETFortune/advisor" }
+      ] },
+    { id: "gov", no: 6, name: "公司治理", en: "Corporate Governance", q: -1, r: 0, color: "#6f7fb5", ground: "brick", tree: "willow",
+      summary: "公司經營要透明、董事會要負責，治理做得好，投資人才放心。",
+      summaryEn: "Transparent management and accountable boards, so investors can trust what they own.",
+      items: [
+        { id: "g1", name: "公司治理中心", en: "Corporate Governance Center", model: "scale", status: "live",
+          desc: "推動公司治理制度、辦理評鑑與宣導的專責單位。",
+          descEn: "The unit that promotes governance rules, evaluations and outreach.",
+          facts: ["設有公司治理中心專屬網站|Has a dedicated website",
+                  "成立時間（待查證）|Year established (to be verified)"],
+          url: "https://cgc.twse.com.tw/" },
+        { id: "g2", name: "公司治理評鑑", en: "Corporate Governance Evaluation", model: "book", status: "live",
+          desc: "替上市公司的治理表現打分數，結果公開供大家參考。",
+          descEn: "Scores listed companies on governance and publishes the results.",
+          facts: ["評鑑結果用於編製臺灣公司治理 100 指數（待查證）|Results feed the Corporate Governance 100 Index (to be verified)",
+                  "評鑑年度與受評家數（待查證）|Evaluation year and number of companies (to be verified)"],
+          url: "https://cgc.twse.com.tw/" },
+        { id: "g3", name: "資訊揭露", en: "Information Disclosure", model: "magnifier", status: "live",
+          desc: "重大訊息、財報、內部人持股都要公開，像放大鏡一樣讓市場看清楚。",
+          descEn: "Material news, financials and insider holdings are disclosed for all to see.",
+          facts: ["公開資訊觀測站揭露即時重大訊息|MOPS publishes material information in real time",
+                  "上市公司公告可用「公告快易查」查詢|Announcements are searchable via EZ Search",
+                  "提供內部人股權申報 AI 小幫手|An AI assistant helps with insider shareholding filings"],
+          url: "https://mops.twse.com.tw/mops/web/index" }
+      ] },
+    { id: "value", no: 7, name: "提升企業價值", en: "Corporate Value-up", q: 1, r: -2, color: "#f2b5c6", ground: "stripe", tree: "sakura",
+      summary: "鼓勵公司主動說明經營策略、和投資人對話，讓價值被看見。",
+      summaryEn: "Encouraging companies to explain their strategy and engage investors.",
+      items: [
+        { id: "v1", name: "提升企業價值資訊網站", en: "Value-up Information Site", model: "office", status: "progress",
+          desc: "整理上市公司提升企業價值的計畫與資訊。",
+          descEn: "Collects listed companies' value-up plans and related information.",
+          facts: ["網站設於 ESG InfoHub 系統下|Hosted within the ESG InfoHub system",
+                  "官網設有「ESG 生態系」專區整合相關資訊|A TWSE 'ESG ecosystem' page links the resources",
+                  "揭露家數與時程（待查證）|Number of disclosures and timeline (to be verified)"],
+          url: "https://esg.twse.com.tw/PowerUp/front/tw/main/home" },
+        { id: "v2", name: "IR 議合服務平台", en: "IR Engagement Platform", model: "meeting", status: "live",
+          desc: "幫投資人和上市公司約時間對話的平台。",
+          descEn: "Helps investors and listed companies schedule engagement meetings.",
+          facts: ["平台設於臺灣指數公司網站|Hosted by Taiwan Index Plus",
+                  "使用對象與流程（待查證）|Eligible users and process (to be verified)"],
+          url: "https://irengage.taiwanindex.com.tw/" },
+        { id: "v3", name: "法說會", en: "Investor Conferences", model: "meeting", status: "live",
+          desc: "公司上台說明營運與展望。官網會公告上市公司法說會時程。",
+          descEn: "Companies present results and outlook. TWSE posts the schedule.",
+          facts: ["官網按月公告上市公司法人說明會時程|TWSE posts listed-company conference schedules by month",
+                  "也辦理主題式業績發表會|Thematic results events are also held"],
+          url: "https://www.twse.com.tw/zh/about/news/event/list.html" }
+      ] },
+    { id: "esg", no: 8, name: "ESG 與永續", en: "ESG & Sustainability", q: -2, r: 1, color: "#71806a", ground: "speck", tree: "pine",
+      summary: "環境、社會、治理的資訊揭露，以及碳權交易。",
+      summaryEn: "Environmental, social and governance disclosure, plus carbon credit trading.",
+      items: [
+        { id: "s1", name: "ESG InfoHub", en: "ESG InfoHub", model: "esg", status: "live",
+          desc: "上市公司 ESG 資訊的整合平台。",
+          descEn: "The integrated platform for listed companies' ESG information.",
+          facts: ["整合上市公司 ESG 資訊|Integrates listed companies' ESG data",
+                  "官網另設永續發展專區|TWSE also runs a sustainability section"],
+          url: "https://esg.twse.com.tw/ESG/front/tw/#/main/home" },
+        { id: "s2", name: "ESG 資料庫", en: "ESG Database", model: "server", status: "live",
+          desc: "把各家公司的 ESG 數據集中成資料庫，方便查詢比較。",
+          descEn: "A database of company ESG metrics for lookup and comparison.",
+          facts: ["可在 ESG InfoHub 查詢|Available on ESG InfoHub",
+                  "資料欄位與年度（待查證）|Fields and years covered (to be verified)"],
+          url: "https://esg.twse.com.tw/ESG/front/tw/#/main/esg-data" },
+        { id: "s3", name: "溫室氣體盤查", en: "GHG Inventory", model: "esg", status: "live",
+          desc: "公司排了多少溫室氣體？盤查資訊在這裡公開。",
+          descEn: "How much greenhouse gas companies emit, disclosed here.",
+          facts: ["ESG InfoHub 設有溫室氣體盤查頁面|ESG InfoHub has a GHG inventory page",
+                  "分階段適用時程（待查證）|Phase-in schedule (to be verified)"],
+          url: "https://esg.twse.com.tw/ESG/front/tw/#/main/greenhouse-gas-inventory" },
+        { id: "s4", name: "接軌 IFRS 永續揭露準則", en: "IFRS Sustainability Disclosure", model: "book", status: "progress",
+          desc: "讓臺灣公司的永續資訊和國際準則接軌。",
+          descEn: "Aligning Taiwan's sustainability disclosure with IFRS standards.",
+          facts: ["專區網站由櫃買中心提供|The portal is hosted by TPEx",
+                  "依資本額分階段適用（時程待查證）|Phased in by paid-in capital (timeline to be verified)"],
+          url: "https://isds.tpex.org.tw/" },
+        { id: "s5", name: "臺灣碳權交易所", en: "Taiwan Carbon Solution Exchange", model: "carbon", status: "live",
+          desc: "碳權買賣的交易平台，幫企業處理減碳需求。",
+          descEn: "A platform for trading carbon credits to support decarbonisation.",
+          facts: ["官網列為證交所相關平台|Listed among TWSE-related platforms",
+                  "成立時間與地點（待查證）|Founding date and location (to be verified)"],
+          url: "https://www.tcx.com.tw/" }
+      ] },
+    { id: "clear", no: 9, name: "結算服務", en: "Clearing & Settlement", q: 1, r: 0, color: "#3e7c8c", ground: "brick", tree: "round",
+      summary: "成交之後，錢和股票怎麼交換？結算交割確保每筆交易都能完成。",
+      summaryEn: "After a trade, cash and shares change hands. Clearing makes sure every trade completes.",
+      items: [
+        { id: "c1", name: "交割結算", en: "Settlement (T+2)", model: "vault", status: "live",
+          desc: "成交日後第二個營業日完成款券交割，也就是 T+2。",
+          descEn: "Cash and securities settle on the second business day after the trade (T+2).",
+          facts: ["採普通（T+2）交割，全面款券劃撥|Ordinary T+2 settlement by book entry",
+                  "應付款券於第二營業日上午 10 時前交割|Payables due by 10:00 on T+2",
+                  "應收款券於第二營業日上午 11 時後取得|Receivables available after 11:00 on T+2"],
+          url: "https://www.twse.com.tw/zh/clearing/clearing/operations.html" },
+        { id: "c2", name: "交割結算基金", en: "Settlement Funds", model: "coin", status: "live",
+          desc: "萬一有券商無法交割，有基金先頂上，保護整個市場。",
+          descEn: "Funds that step in if a broker fails to settle, protecting the market.",
+          facts: ["設有共同責任制交割結算基金|Joint-responsibility settlement fund",
+                  "另有特別結算基金|Special clearing fund",
+                  "證券商機動提撥機制|Brokers' contingent contribution mechanism"],
+          url: "https://www.twse.com.tw/zh/clearing/securities/joint.html" },
+        { id: "c3", name: "財務安全防衛機制", en: "Financial Safeguards", model: "scale", status: "live",
+          desc: "違約時依順序動用各道防線，並有交割借券制度補位。",
+          descEn: "Layered defences used in order on default, plus settlement securities lending.",
+          facts: ["訂有動用順序及補足方式|Usage order and replenishment are defined",
+                  "設有交割借券制度|Settlement securities lending is available",
+                  "違背交割義務有處理程序|Procedures exist for settlement default"],
+          url: "https://www.twse.com.tw/zh/clearing/securities/compensation.html" }
+      ] },
+    { id: "stats", no: 10, name: "市場資訊與統計", en: "Market Data & Statistics", q: 2, r: 0, color: "#fcea8b", ground: "speck", tree: "fruit",
+      summary: "融資融券、借券、三大法人、殖利率、排行榜與市場統計報表。",
+      summaryEn: "Margin, securities lending, institutional flows, yields, rankings and market reports.",
+      items: [
+        { id: "m1", name: "市場統計", en: "Market Statistics", model: "office", status: "live",
+          desc: "週報、月報、年報，把市場數字整理成報表。",
+          descEn: "Weekly, monthly and annual reports of market figures.",
+          facts: ["提供市值週報、市場交易月報|Weekly market-cap and monthly trading reports",
+                  "提供證券統計資料年報|Annual securities statistics",
+                  "每 5 秒委託成交統計|5-second order and trade statistics"],
+          url: "https://www.twse.com.tw/zh/trading/statistics/index02.html" },
+        { id: "m2", name: "融資融券", en: "Margin Trading", model: "coin", status: "live",
+          desc: "跟券商借錢買股或借股票來賣的餘額統計。槓桿有風險。",
+          descEn: "Balances of margin purchases and short sales. Leverage carries risk.",
+          facts: ["公布融資融券餘額|Margin balances are published",
+                  "公布調整成數與停券預告表|Margin ratio changes and suspension notices"],
+          url: "https://www.twse.com.tw/zh/trading/margin/mi-margn.html" },
+        { id: "m3", name: "借券資訊", en: "Securities Lending", model: "book", status: "live",
+          desc: "有價證券借貸的制度與每日資訊。",
+          descEn: "Rules and daily data for securities borrowing and lending.",
+          facts: ["公布當日可借券賣出股數|Daily shares available for borrowing-to-sell",
+                  "公布融券借券賣出餘額|Short-sale and borrowed-sale balances"],
+          url: "https://www.twse.com.tw/zh/products/sbl/disclosures/info.html" },
+        { id: "m4", name: "三大法人", en: "Institutional Investors", model: "house", status: "live",
+          desc: "外資、投信、自營商每天買賣多少，日報週報月報都有。",
+          descEn: "Daily, weekly and monthly flows of foreign investors, trusts and dealers.",
+          facts: ["提供買賣超日報、週報、月報|Daily, weekly and monthly net-buy reports",
+                  "公布外資及陸資持股統計|Foreign shareholding statistics"],
+          url: "https://www.twse.com.tw/zh/trading/foreign/t86.html" },
+        { id: "m5", name: "殖利率", en: "Dividend Yield", model: "magnifier", status: "live",
+          desc: "個股本益比、殖利率與股價淨值比的查詢。",
+          descEn: "Look up P/E, dividend yield and P/B by stock.",
+          facts: ["可依日期或代碼查詢|Search by date or by code",
+                  "首頁提供上市股票殖利率區塊|The homepage has a yield section"],
+          url: "https://www.twse.com.tw/zh/trading/historical/bwibbu-day.html" },
+        { id: "m6", name: "排行榜", en: "Rankings", model: "podium", status: "live",
+          desc: "每天成交量最大的證券排行。排名不代表推薦。",
+          descEn: "Daily rankings of the most-traded securities. Not a recommendation.",
+          facts: ["每日成交量前二十名證券|Top 20 securities by daily volume",
+                  "首頁設有排行榜區塊|The homepage has a rankings section"],
+          url: "https://www.twse.com.tw/zh/trading/historical/mi-stock20.html" },
+        { id: "m7", name: "上市公司總市值", en: "Total Market Capitalisation", model: "indexTower", status: "live",
+          desc: "所有上市公司加起來值多少錢。本示範不顯示即時數字。",
+          descEn: "The combined value of all listed companies. No live figure in this demo.",
+          facts: ["首頁提供上市公司總市值區塊|The homepage shows total market cap",
+                  "最新數值以官網為準（示意）|Latest figure per TWSE (illustrative)"],
+          url: "https://www.twse.com.tw/zh/index.html#capital" }
+      ] },
+    { id: "protect", no: 11, name: "投資人保護", en: "Investor Protection", q: -1, r: 1, color: "#db6a41", ground: "brick", tree: "willow",
+      summary: "防詐騙、投資教育與法規查詢，先保護好自己再投資。",
+      summaryEn: "Anti-fraud, investor education and rule lookups. Protect yourself first.",
+      items: [
+        { id: "p1", name: "證券反詐騙聯防行動專區", en: "Anti-fraud Action Zone", model: "booth", status: "live",
+          desc: "教你辨識假投顧、假 App 與投資詐騙，遇到可疑訊息先查證。",
+          descEn: "Learn to spot fake advisers, fake apps and scams. Check before you act.",
+          facts: ["證交所與櫃買中心共同建置|Built jointly by TWSE and TPEx",
+                  "公告投資理財節目異常推介個股|Lists stocks abnormally promoted on investment shows"],
+          url: "https://cam.twse.com.tw/antifraud" },
+        { id: "p2", name: "投資人知識網", en: "Investor Education Website", model: "classroom", status: "live",
+          desc: "從開戶到看懂財報的投資入門課程與文章。",
+          descEn: "Beginner courses and articles, from opening an account to reading financials.",
+          facts: ["115 年投資講座舉辦期間 6 月 8 日至 12 月 7 日|2026 investor seminars run 8 Jun – 7 Dec",
+                  "提供全民投資通識線上課程|Offers general investing courses online"],
+          url: "https://investoredu.twse.com.tw/" },
+        { id: "p3", name: "宅在家學習網", en: "Learn-at-home Website", model: "house", status: "live",
+          desc: "在家就能上的線上學習資源。",
+          descEn: "Online learning you can do from home.",
+          facts: ["以線上影音學習為主（待查證）|Mostly online video learning (to be verified)",
+                  "課程數量（待查證）|Number of courses (to be verified)"],
+          url: "https://shl.twse.com.tw/" },
+        { id: "p4", name: "法規分享知識庫", en: "Regulation Knowledge Base", model: "book", status: "live",
+          desc: "查詢證交所規章，依發行、交易、監理等分類。",
+          descEn: "Search TWSE rules by issuing, trading, surveillance and governance.",
+          facts: ["分類含發行市場、交易市場、市場監理、公司治理|Categories: issuing, trading, surveillance, governance",
+                  "公告近期與歷史修訂資訊|Recent and historical amendments are posted"],
+          url: "https://twse-regulation.twse.com.tw/TW/Index.aspx" },
+        { id: "p5", name: "投資知識小幫手", en: "Investment Knowledge Assistant", model: "screen", status: "live",
+          desc: "用 AI 問答查投資知識，適合想快速查名詞的人。",
+          descEn: "An AI Q&A for quick lookups of investing terms.",
+          facts: ["提供投資知識查詢與學習服務|Provides investing Q&A and learning",
+                  "回答內容以官網規章為準|Official rules take precedence over answers"],
+          url: "https://aiowl.twse.com.tw/investor/" }
+      ] },
+    { id: "tech", no: 12, name: "市場數據與科技", en: "Market Data & Technology", q: 0, r: 1, color: "#58a6a6", ground: "stripe", tree: "palm",
+      summary: "把市場數據做成儀表板、提供主機共置與國際投資資訊。",
+      summaryEn: "Dashboards of market data, co-location services and guides for foreign investors.",
+      items: [
+        { id: "d1", name: "臺股儀表板", en: "Taiwan Market Dashboard", model: "server", status: "live",
+          desc: "以圖表呈現臺股重要數據與風險指標。",
+          descEn: "Charts of key Taiwan market data and risk indicators.",
+          facts: ["以圖表呈現重要數據與風險指標|Charts key data and risk indicators",
+                  "指標項目（待查證）|Indicator list (to be verified)"],
+          url: "https://www.twse.com.tw/dashboard/zh/index.html" },
+        { id: "d2", name: "Co-Location 主機共置", en: "Co-location Service", model: "server", status: "live",
+          desc: "讓券商把交易主機放在交易所機房旁，連線更穩定。",
+          descEn: "Brokers can host trading servers next to the exchange for stable connectivity.",
+          facts: ["官網設有主機共置服務專頁|A dedicated service page exists",
+                  "收費與規格（待查證）|Fees and specs (to be verified)"],
+          url: "https://www.twse.com.tw/zh/products/colo/colo.html" },
+        { id: "d3", name: "臺灣投資指南", en: "Taiwan Investment Guide", model: "globe", status: "live",
+          desc: "給外國投資人的臺股入門指南。",
+          descEn: "A guide to the Taiwan market for foreign investors.",
+          facts: ["官網提供臺灣投資指南 2025|Taiwan Investment Guide 2025 is available",
+                  "另有僑外投資說明頁|A page for overseas and foreign investors"],
+          url: "https://www.twse.com.tw/zh/focus/investing.html" },
+        { id: "d4", name: "投資資訊中心 2.0", en: "Investment Info Hub 2.0", model: "screen", status: "live",
+          desc: "整合投資資訊的入口網站。",
+          descEn: "A portal that gathers investment information.",
+          facts: ["提供即時、延遲與盤後交易資訊服務|Real-time, delayed and after-hours data services",
+                  "功能範圍（待查證）|Feature scope (to be verified)"],
+          url: "https://www.twse.com.tw/IIH2/zh/" }
+      ] }
+  ],
+  roles: {
+    clerk:     { name: "交易所職員", en: "Exchange staff" },
+    analyst:   { name: "分析師", en: "Analyst" },
+    cfo:       { name: "財務長", en: "CFO" },
+    ir:        { name: "IR 人員", en: "IR officer" },
+    esg:       { name: "ESG 顧問", en: "ESG adviser" },
+    settle:    { name: "結算人員", en: "Clearing officer" },
+    engineer:  { name: "工程師", en: "Engineer" },
+    founder:   { name: "新創創辦人", en: "Start-up founder" },
+    retiree:   { name: "退休投資人", en: "Retired investor" },
+    student:   { name: "學生", en: "Student" },
+    volunteer: { name: "防詐志工", en: "Anti-fraud volunteer" },
+    foreigner: { name: "外國投資人", en: "Foreign investor" }
+  },
+  /* status：official 已實施（實線）、thematic 推動中（虛線）、pending 研議／規劃中（點線） */
+  flows: [
+    { id: "f1", from: "listing", to: "gov",     cargo: "公開說明書", cargoEn: "prospectus", icon: "doc",     roles: ["cfo"],        status: "official" },
+    { id: "f2", from: "gov",     to: "esg",     cargo: "永續報告書", cargoEn: "sustainability report", icon: "leaf", roles: ["esg"], status: "official" },
+    { id: "f3", from: "trade",   to: "clear",   cargo: "成交單", cargoEn: "trade confirmation", icon: "receipt", roles: ["settle", "clerk"], status: "official" },
+    { id: "f4", from: "index",   to: "etf",     cargo: "成分股清單", cargoEn: "constituent list", icon: "list", roles: ["analyst"], status: "official" },
+    { id: "f5", from: "tib",     to: "listing", cargo: "上市申請書", cargoEn: "listing application", icon: "form", roles: ["founder"], status: "thematic" },
+    { id: "f6", from: "value",   to: "listing", cargo: "法說會簡報", cargoEn: "investor-day slides", icon: "slides", roles: ["ir"], status: "thematic" },
+    { id: "f7", from: "protect", to: "trade",   cargo: "防詐警示傳單", cargoEn: "anti-fraud flyer", icon: "shield", roles: ["volunteer", "retiree"], status: "official" },
+    { id: "f8", from: "tech",    to: "stats",   cargo: "數據硬碟", cargoEn: "data drive", icon: "drive", roles: ["engineer"], status: "pending" },
+    { id: "f9", from: "tech",    to: "index",   cargo: "臺灣投資指南", cargoEn: "investment guide", icon: "globe", roles: ["foreigner"], status: "official" },
+    { id: "f10", from: "protect", to: "etf",    cargo: "學習筆記", cargoEn: "study notes", icon: "book", roles: ["student", "retiree"], status: "thematic" }
+  ],
+  /* 一天的時段：min 為當日分鐘數；items 為該時段亮起的細項 */
+  dayCycle: [
+    { min: 420, t: "07:00", name: "盤前資訊與公告", en: "Pre-market news", items: ["l3", "g3", "v3"], note: "重大訊息與公告於盤前查閱；確切時間以官網為準。", noteEn: "Check announcements before the open; exact times per TWSE." },
+    { min: 510, t: "08:30", name: "盤前委託", en: "Pre-open orders", items: ["t1"], note: "8:30 起接受委託並揭露模擬撮合資訊。", noteEn: "Orders and indicative matching from 8:30." },
+    { min: 540, t: "09:00", name: "開盤", en: "Market open", items: ["t1", "t2", "i1"], note: "9:00 開盤集合競價；盤中零股現制 9:10 首次撮合。", noteEn: "Opening call auction at 9:00; odd lots currently first match at 9:10." },
+    { min: 550, t: "09:10", name: "盤中交易", en: "Continuous trading", items: ["t1", "t2", "t5", "i1", "i2", "i4", "d1"], note: "9:00–13:25 逐筆交易，指數與三大法人資訊隨盤更新（示意）。", noteEn: "Continuous trading 9:00–13:25; indices update through the day (illustrative)." },
+    { min: 805, t: "13:25", name: "收盤", en: "Closing auction", items: ["t1", "i1"], note: "13:25–13:30 收盤集合競價。", noteEn: "Closing call auction 13:25–13:30." },
+    { min: 820, t: "13:40", name: "盤後交易", en: "After-hours sessions", items: ["t3", "t4"], note: "盤後零股 13:40–14:30；盤後定價 14:00–14:30。", noteEn: "Odd lots 13:40–14:30; fixed-price 14:00–14:30." },
+    { min: 900, t: "15:00", name: "盤後統計公布", en: "Post-market data", items: ["m1", "m2", "m3", "m4", "m5", "m6", "m7"], note: "融資融券、借券與三大法人等資料於盤後公布，各項公布時間待查證。", noteEn: "Margin, lending and institutional data are published after the close; times to be verified." },
+    { min: 1140, t: "19:00", name: "夜間：結算與學習", en: "Evening: settlement & learning", items: ["c1", "c2", "p2", "p3"], note: "交割於 T+2 完成；夜間時段為示意，用來介紹結算與投資教育。", noteEn: "Settlement completes on T+2; this evening slot is illustrative." }
+  ]
+};
+</script>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 版面概念：整頁是一座黏土模型城，介面像擺在桌邊的紙卡與木製按鈕，浮在 3D 場景上。 */
+:root {
+  --coral: #db6a41; --ink: #211d1d; --cream: #fff8f4; --yellow: #fcea8b;
+  --stone: #c5b5a7; --green: #71806a; --teal: #3e7c8c;
+  --paper: rgba(255, 250, 245, .80); --paper-solid: #fffaf5; --line: rgba(33, 29, 29, .10);
+  --muted: #6b5f57; --chipshadow: 0 2px 8px #4a2a1414;
+  --shadow: 0 1px 2px #4a2a1414, 0 8px 22px #4a2a1418, 0 28px 64px #4a2a1414;
+  --ui: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --num: Georgia, "Times New Roman", serif;
+  --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px);
+  --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { margin: 0; overflow: hidden; color: var(--ink); font-family: var(--ui); font-size: 14px;
+  background: radial-gradient(120% 90% at 50% 38%, #fffdf9 0%, #edddcf 100%); }
+#app { position: fixed; inset: 0; overflow: hidden; }
+#gl { position: absolute; inset: 0; }
+#gl canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+#labels { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+#brand, #tools, #card, #side, #hud, #log, #legend, #hudBtn { z-index: 3; }
+[hidden] { display: none !important; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+.eyebrow { font: 700 10px/1.2 var(--mono); letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+.disc { font-size: 11px; line-height: 1.5; color: var(--muted); }
+.disc a { color: var(--coral); text-underline-offset: 2px; }
+
+/* ---------- 按鈕與 chip ---------- */
+.btn { min-height: 44px; min-width: 44px; border-radius: 9px; border: 1px solid var(--line); background: var(--paper-solid);
+  padding: 0 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: var(--chipshadow); transition: background .15s, color .15s; }
+.btn:hover { background: var(--yellow); }
+.btn:active, .btn[aria-pressed="true"] { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.btn:focus-visible, .chip:focus-visible, .rowbtn:focus-visible, summary:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; border: 0; background: #fff; box-shadow: var(--chipshadow);
+  padding: 6px 12px; font-size: 12px; cursor: pointer; min-height: 32px; }
+.chip.cream { background: var(--cream); }
+.chip:hover { background: var(--yellow); }
+.status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 9px; border-radius: 999px; background: var(--cream); white-space: nowrap; }
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.status.live { color: #4f6b44; } .status.progress { color: #b5562f; } .status.plan { color: #5a6798; }
+
+/* ---------- 品牌卡與工具列 ---------- */
+#brand { position: absolute; left: calc(16px + var(--sl)); top: calc(16px + var(--st)); width: 286px; padding: 14px 16px 12px;
+  border-radius: 18px; background: var(--paper); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow); }
+#brand h1 { margin: 2px 0 0; font-size: 26px; line-height: 1.1; letter-spacing: 1px; font-weight: 800; }
+#brand h1 small { display: block; margin-top: 4px; font-size: 14px; font-weight: 600; color: var(--coral); letter-spacing: 3px; }
+#brand .disc { margin-top: 8px; }
+#tools { position: absolute; left: calc(16px + var(--sl)); top: calc(168px + var(--st)); display: flex; gap: 8px; }
+#tools .btn { font-size: 13px; }
+
+/* ---------- 詳細卡片 ---------- */
+#card { position: absolute; left: calc(16px + var(--sl)); top: calc(228px + var(--st)); bottom: calc(104px + var(--sb)); width: 340px;
+  border-radius: 22px; background: var(--paper-solid); box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+#card .body { overflow-y: auto; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 14px; overscroll-behavior: contain; }
+#card .close { position: absolute; right: 10px; top: 10px; z-index: 2; background: var(--cream); }
+#card h2 { margin: 4px 0 0; font-size: 22px; line-height: 1.25; text-wrap: balance; padding-right: 40px; }
+#card p { margin: 0; line-height: 1.65; }
+#card .thumb { width: 160px; height: 160px; border-radius: 16px; background: radial-gradient(circle at 50% 40%, #fff, #f1e5d8); align-self: center; display: block; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+.tile { background: var(--cream); border-radius: 12px; padding: 10px; min-width: 0; }
+.tile b { display: block; font: italic 400 22px/1.15 var(--num); color: var(--coral); overflow-wrap: anywhere; }
+.tile span { display: block; margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--muted); }
+.facts { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; line-height: 1.55; }
+.facts .tbc { color: #b5562f; font-size: 12px; }
+.timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; position: relative; }
+.timeline div { text-align: center; font-size: 12px; padding-top: 18px; position: relative; color: var(--muted); }
+.timeline div::before { content: ""; position: absolute; left: 50%; top: 4px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--stone); }
+.timeline div::after { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--stone); z-index: -1; }
+.timeline div.on { color: var(--ink); font-weight: 700; }
+.timeline div.on::before { background: var(--coral); box-shadow: 0 0 0 4px #db6a4133; }
+.linkbtn { text-decoration: none; background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.linkbtn:hover { background: var(--coral); color: #fff; }
+.itemlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.rowbtn { width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; min-height: 44px; border: 0; background: transparent;
+  border-radius: 10px; padding: 6px 8px; cursor: pointer; }
+.rowbtn:hover { background: var(--cream); }
+.rowbtn .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: var(--cream); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+.rowbtn .t { flex: 1; min-width: 0; }
+.rowbtn.lit .n { background: #e7cf3f; color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ibadge { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font: italic 22px var(--num); color: var(--ink); box-shadow: inset 0 -3px 0 #0000001a; }
+.cardhead { display: flex; gap: 12px; align-items: center; }
+.flowpath { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.swatch { display: inline-block; width: 42px; height: 0; border-top: 3px solid var(--coral); vertical-align: middle; }
+.swatch.thematic { border-top-style: dashed; } .swatch.pending { border-top-style: dotted; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; }
+
+/* ---------- 右側清單 ---------- */
+#side { position: absolute; right: calc(16px + var(--sr)); top: calc(16px + var(--st)); bottom: calc(104px + var(--sb)); width: 318px;
+  border-radius: 20px; background: rgba(255, 250, 245, .72); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+#side header { padding: 14px 14px 8px; display: flex; flex-direction: column; gap: 10px; }
+#side .row { display: flex; gap: 8px; align-items: center; }
+#search { flex: 1; min-width: 0; min-height: 44px; border-radius: 9px; border: 1px solid var(--line); background: #fff; padding: 0 12px; font: inherit; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#sideList { overflow-y: auto; padding: 4px 10px 14px; overscroll-behavior: contain; }
+#sideList details { border-radius: 12px; }
+#sideList details[open] { background: rgba(255, 255, 255, .55); }
+#sideList summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 8px; border-radius: 12px; }
+#sideList summary::-webkit-details-marker { display: none; }
+#sideList summary:hover { background: var(--cream); }
+#sideList summary .no { font: 700 11px var(--mono); letter-spacing: 1px; width: 26px; color: var(--muted); }
+#sideList summary .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+#sideList summary .cnt { margin-left: auto; font-size: 11px; color: var(--muted); }
+#sideList .itemlist { padding: 0 4px 8px 30px; }
+.empty { padding: 20px 10px; color: var(--muted); text-align: center; line-height: 1.6; }
+
+/* ---------- HUD ---------- */
+#hud { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(16px + var(--sb)); display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 999px; background: var(--paper); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+#hud .clock { display: flex; flex-direction: column; padding: 0 10px 0 12px; min-width: 104px; }
+#hud .clock b { font: italic 26px/1 var(--num); font-variant-numeric: tabular-nums; }
+#hud .clock span { font-size: 11px; color: var(--muted); margin-top: 3px; white-space: nowrap; }
+#hud .grp { display: flex; gap: 4px; }
+#hud .sep { width: 1px; align-self: stretch; background: var(--line); margin: 4px 2px; }
+#hud .tbtn { flex-direction: column; gap: 1px; min-width: 52px; padding: 4px 6px; font-size: 11px; line-height: 1.15; border-radius: 9px; }
+#hud .tbtn em { font-style: normal; font: 600 12px var(--mono); }
+#hud .tg { flex-direction: column; gap: 2px; min-width: 48px; padding: 4px 4px; font-size: 11px; border-radius: 9px; }
+#hud .tg svg { width: 18px; height: 18px; }
+#hudBtn { display: none; }
+
+/* ---------- 市場日誌 ---------- */
+#log { position: absolute; top: calc(16px + var(--st)); right: calc(16px + var(--sr)); width: 300px; max-height: 46%; border-radius: 18px; background: var(--paper-solid);
+  box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+body.side-open #log { right: calc(350px + var(--sr)); }
+#log header { padding: 12px 14px 8px; display: flex; align-items: center; gap: 8px; }
+#log header b { font-size: 15px; }
+.live { display: inline-flex; align-items: center; gap: 5px; font: 700 10px var(--mono); letter-spacing: 1.5px; color: #3f7a45; }
+.live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #48a85a; animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+#logFilter { margin-left: auto; min-height: 32px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 12px; max-width: 130px; }
+#logList { list-style: none; margin: 0; padding: 0 12px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+#logList li { display: grid; grid-template-columns: 44px 1fr; gap: 8px; font-size: 12px; line-height: 1.45; padding: 6px 8px; border-radius: 10px; background: var(--cream); }
+#logList li time { font: 600 11px var(--mono); color: var(--muted); padding-top: 1px; }
+#logList li.handoff { background: #fdf3c4; }
+
+/* ---------- 圖例 ---------- */
+#legend { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(86px + var(--sb)); display: flex; gap: 14px; align-items: center;
+  padding: 8px 14px; border-radius: 999px; background: var(--paper); backdrop-filter: blur(10px); box-shadow: var(--chipshadow); font-size: 12px; white-space: nowrap; }
+
+/* ---------- 3D 標籤 ---------- */
+.ilabel { pointer-events: auto; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 6px; border-radius: 999px;
+  background: #fffaf5; box-shadow: 0 2px 8px #4a2a1426; font-size: 13px; font-weight: 700; white-space: nowrap; border: 0; transition: opacity .2s; font-family: var(--ui); }
+.ilabel .num { font: 700 11px var(--mono); background: var(--ink); color: var(--cream); border-radius: 999px; padding: 2px 6px; }
+.ilabel .txt { display: inline-block; overflow: hidden; max-width: 14em; transition: max-width .2s; }
+.ilabel.c-num { padding-right: 6px; gap: 0; } .ilabel.c-num .txt { max-width: 0; }
+.ilabel.c-hide, .pin.c-hide { visibility: hidden; }
+.ilabel.sel { background: var(--ink); color: var(--cream); } .ilabel.sel .num { background: var(--coral); }
+.ilabel.dim { opacity: .45; }
+.ilabel.lit .num { background: #e7cf3f; color: var(--ink); }
+.pin { pointer-events: auto; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; background: var(--coral); color: #fff; border: 2px solid #fff;
+  display: grid; place-items: center; font: 700 13px var(--ui); box-shadow: 0 2px 6px #4a2a1433; padding: 0; }
+.pin.sel { background: var(--ink); }
+.bubble { pointer-events: none; padding: 3px 8px; border-radius: 999px; background: #fffaf5; font-size: 11px; white-space: nowrap; box-shadow: 0 2px 6px #4a2a1426; transform: translateY(-34px); }
+
+/* ---------- 載入與說明 ---------- */
+#loader { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; z-index: 20;
+  background: radial-gradient(120% 90% at 50% 38%, #fffdf9 0%, #edddcf 100%); transition: opacity .5s; }
+#loader h2 { margin: 0; font-size: clamp(36px, 8vw, 64px); font-weight: 800; letter-spacing: 4px; }
+#loader p { margin: 10px 0 0; color: var(--muted); }
+#loader .err { margin-top: 18px; max-width: 460px; color: #9b3b1c; background: #fff; border-radius: 12px; padding: 12px 16px; line-height: 1.6; box-shadow: var(--chipshadow); }
+#loader.done { opacity: 0; pointer-events: none; }
+#help { position: absolute; inset: 0; z-index: 15; display: grid; place-items: center; background: #2a1d1633; padding: 16px; }
+#help .box { width: min(440px, 100%); background: var(--paper-solid); border-radius: 22px; box-shadow: var(--shadow); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+#help h2 { margin: 0; font-size: 20px; }
+#help ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; counter-reset: s; }
+#help li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; line-height: 1.55; counter-increment: s; }
+#help li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; background: var(--yellow); display: grid; place-items: center; font: italic 18px var(--num); }
+#help .actions { display: flex; justify-content: flex-end; }
+.handle { display: none; }
+
+@media (prefers-reduced-motion: reduce) { .live::before { animation: none; } * { transition: none !important; } }
+
+/* ---------- 手機版 ---------- */
+@media (max-width: 800px) {
+  #brand { width: auto; right: calc(76px + var(--sr)); padding: 10px 12px; }
+  #brand h1 { font-size: 20px; } #brand h1 small { font-size: 12px; letter-spacing: 2px; }
+  #brand .disc { font-size: 10px; }
+  #tools { left: auto; right: calc(16px + var(--sr)); top: calc(16px + var(--st)); flex-direction: column; }
+  #tools .btn { padding: 0 8px; font-size: 12px; min-width: 50px; }
+  .sheet { left: 0 !important; right: 0 !important; top: auto !important; bottom: 0 !important; width: auto !important;
+    border-radius: 20px 20px 0 0 !important; padding-bottom: var(--sb); max-height: calc(100% - var(--st)); }
+  #side.sheet { height: 52%; } #card.sheet { height: 34%; z-index: 6; }
+  .handle { display: block; flex: none; height: 26px; cursor: grab; touch-action: none; position: relative; }
+  .handle::after { content: ""; position: absolute; left: 50%; top: 10px; width: 44px; height: 5px; margin-left: -22px; border-radius: 3px; background: var(--stone); }
+  #hud { display: none; left: calc(16px + var(--sl)); right: calc(16px + var(--sr)); transform: none; bottom: calc(76px + var(--sb)); border-radius: 18px; flex-wrap: wrap; justify-content: center; max-width: none; }
+  #hud.open { display: flex; }
+  #hud .sep { display: none; }
+  #hudBtn { display: inline-flex; position: absolute; right: calc(16px + var(--sr)); bottom: calc(16px + var(--sb)); z-index: 5; }
+  #log, body.side-open #log { left: calc(16px + var(--sl)); right: calc(16px + var(--sr)); width: auto; top: auto; bottom: calc(76px + var(--sb)); max-height: 34%; }
+  #legend { bottom: calc(76px + var(--sb)); left: calc(16px + var(--sl)); transform: none; flex-wrap: wrap; white-space: normal; border-radius: 14px; }
+}
+</style>
+
+<div id="app">
+  <div id="gl"></div>
+  <div id="labels"></div>
+
+  <header id="brand">
+    <div class="eyebrow" data-en="Non-official explainer">非官方教育導覽</div>
+    <h1><span data-en="Capital Market City">資本市場城</span><small data-en="TWSE Policy Isles">證交所政策島</small></h1>
+    <p class="disc"><span data-en="Unofficial demo. Figures follow announcements on the">非官方示範，資料以證交所官網公告為準：</span>
+      <a id="siteLink" href="https://www.twse.com.tw/zh/index.html" target="_blank" rel="noopener" data-en="TWSE website">twse.com.tw</a></p>
+  </header>
+
+  <nav id="tools" aria-label="檢視工具">
+    <button class="btn" id="btnHome" type="button" data-en="Overview">全景</button>
+    <button class="btn" id="btnList" type="button" aria-pressed="true" data-en="List">清單</button>
+    <button class="btn" id="btnHelp" type="button" aria-label="說明" data-en="?">?</button>
+    <button class="btn" id="btnLang" type="button" aria-label="切換語言">EN</button>
+  </nav>
+
+  <aside id="card" hidden aria-live="polite">
+    <div class="handle" aria-hidden="true"></div>
+    <button class="btn close" id="cardClose" type="button" aria-label="關閉卡片">✕</button>
+    <div class="body" id="cardBody"></div>
+  </aside>
+
+  <aside id="side" aria-label="政策清單">
+    <div class="handle" aria-hidden="true"></div>
+    <header>
+      <div class="row">
+        <input id="search" type="search" autocomplete="off" placeholder="搜尋制度、專區…" data-en-ph="Search policies…">
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="btn" id="tabTopics" type="button" role="tab" aria-pressed="true" data-en="Topics">政策主題</button>
+        <button class="btn" id="tabFlows" type="button" role="tab" aria-pressed="false" data-en="Links">協作關係</button>
+      </div>
+    </header>
+    <div id="sideList"></div>
+  </aside>
+
+  <section id="log" hidden aria-label="市場日誌">
+    <header><b data-en="Market log">市場日誌</b><span class="live">LIVE</span>
+      <select id="logFilter" aria-label="依協作線篩選"></select></header>
+    <ul id="logList"></ul>
+  </section>
+
+  <div id="legend" hidden>
+    <span><i class="swatch"></i> <span data-en="In force">已實施</span></span>
+    <span><i class="swatch thematic"></i> <span data-en="In progress">推動中</span></span>
+    <span><i class="swatch pending"></i> <span data-en="Under study">研議／規劃中</span></span>
+  </div>
+
+  <div id="hud" role="toolbar" aria-label="時間與顯示">
+    <div class="clock"><b id="clockTime">08:30</b><span id="segName">盤前委託</span></div>
+    <div class="grp" id="timeBtns">
+      <button class="btn tbtn" type="button" data-min="510"><em>08:30</em><span data-en="Pre-open">盤前</span></button>
+      <button class="btn tbtn" type="button" data-min="540"><em>09:00</em><span data-en="Open">開盤</span></button>
+      <button class="btn tbtn" type="button" data-min="810"><em>13:30</em><span data-en="Close">收盤</span></button>
+      <button class="btn tbtn" type="button" data-min="1260"><em>21:00</em><span data-en="Night">夜晚</span></button>
+    </div>
+    <div class="sep"></div>
+    <div class="grp" id="toggles">
+      <button class="btn tg" type="button" data-k="names" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="6"/><path d="M8 12h8"/></svg><span data-en="Names">名牌</span></button>
+      <button class="btn tg" type="button" data-k="walkers" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v6l-3 6M12 14l3 6M8 11h8"/></svg><span data-en="Couriers">搬運</span></button>
+      <button class="btn tg" type="button" data-k="flows" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="17" r="2.5"/><circle cx="19" cy="7" r="2.5"/><path d="M7 15.5C11 14 10 9 17 8" stroke-dasharray="3 3"/></svg><span data-en="Links">協作線</span></button>
+      <button class="btn tg" type="button" data-k="paused" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6v12M15 6v12"/></svg><span data-en="Pause">暫停</span></button>
+      <button class="btn tg" type="button" data-k="bird" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M9 6l3 3 3-3"/><path d="M4 15l8-4 8 4-8 4z"/></svg><span data-en="Top view">鳥瞰</span></button>
+      <button class="btn tg" type="button" data-k="log" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg><span data-en="Log">日誌</span></button>
+    </div>
+  </div>
+  <button class="btn" id="hudBtn" type="button" aria-expanded="false"><span data-en="◷ Time">◷ 時間</span></button>
+
+  <div id="help" hidden role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="box">
+      <div class="eyebrow" data-en="How to explore">逛城方式</div>
+      <h2 id="helpTitle" data-en="Three ways to explore">三步驟逛資本市場城</h2>
+      <ol>
+        <li><span data-en="Drag to orbit, scroll or pinch to zoom. Arrow keys rotate too.">拖曳旋轉、滾輪或雙指縮放；方向鍵也能轉動鏡頭。</span></li>
+        <li><span data-en="Click an island, a building or a courier to open its card with facts and the official link.">點一座島、一棟建物或路上的小人，左側卡片會說明重點並附官網連結。</span></li>
+        <li><span data-en="Use the time bar to jump through a trading day. Highlighted buildings are active in that slot.">用下方時間列跳到盤前、開盤、收盤或夜晚，黃色亮起的建物就是該時段的主角。</span></li>
+      </ol>
+      <p class="disc" data-en="Unofficial demo. Figures follow TWSE announcements. No quotes or investment advice.">非官方示範，資料以證交所官網公告為準；不提供即時行情與投資建議。</p>
+      <div class="actions"><button class="btn linkbtn" id="helpOk" type="button" data-en="Start exploring">開始逛</button></div>
+    </div>
+  </div>
+
+  <div id="loader">
+    <div>
+      <h2 data-en="Capital Market City">資本市場城</h2>
+      <p id="loadMsg" data-en="Assembling the capital market city…">正在組合資本市場城…</p>
+      <div id="loadErr" class="err" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+// ====================================================================
+// 證交所政策島：3D 引擎（場景、日夜、零件庫、模型）
+// ====================================================================
+let THREE, OrbitControls, CSS2DRenderer, CSS2DObject, RoundedBoxGeometry, BGU, SimplexNoise;
+
+const R = 2.02, SPACING = 2.28, TOP = 0.65, WATER_Y = -0.18, WALK_R = 1.8;
+const SQ3 = Math.sqrt(3);
+const C = {
+  coral: '#db6a41', ink: '#211d1d', cream: '#fff8f4', yellow: '#fcea8b', stone: '#c5b5a7', green: '#71806a',
+  glass: '#86a8a6', wood: '#b48560', teal: '#3e7c8c', leaf1: '#9cc27a', leaf2: '#8db86f', leaf3: '#728f5f',
+  pink: '#f2b5c6', aqua: '#58a6a6', blue: '#6f7fb5', wall: '#f4ebdd', eave: '#a34e34', win: '#a8c4c2',
+  curb: '#e4d6c3', glow: '#ffc777', up: '#d65a4a', down: '#5f8f62', metal: '#9aa0a6', dark: '#3a3434'
+};
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rngFor = seed => { const f = mulberry32(seed); return { random: f, f, r: (a, b) => a + (b - a) * f(), i: (a, b) => Math.floor(a + (b - a + 1) * f()), pick: arr => arr[Math.floor(f() * arr.length)] }; };
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+// ---------- 語言 ----------
+let LANG = 'zh';
+try { const q = new URLSearchParams(location.search).get('lang'); if (q) LANG = q === 'en' ? 'en' : 'zh'; } catch (e) { }
+if (location.hash === '#en') LANG = 'en';
+if (!/[?&]lang=|#en/.test(location.search + location.hash)) {
+  try { const s = localStorage.getItem('twse-city-lang'); if (s === 'en' || s === 'zh') LANG = s; } catch (e) { }
+}
+const tr = (zh, en) => (LANG === 'en' && en) ? en : zh;
+const nm = o => tr(o.name, o.en);
+const factText = f => { const [zh, en] = f.split('|'); return tr(zh, en || zh); };
+
+// ---------- 資料索引 ----------
+const ISL = DATA.islands.map((d, i) => ({ ...d, idx: i }));
+const ISLAND = {}; const ITEM = {}; const FLOW = {};
+ISL.forEach(is => { ISLAND[is.id] = is; is.items.forEach((it, k) => { it.island = is; it.k = k; ITEM[it.id] = it; }); });
+DATA.flows.forEach(f => FLOW[f.id] = f);
+const CIRCLED = '①②③④⑤⑥⑦⑧⑨';
+
+// ---------- 全域狀態 ----------
+const S = {
+  min: 510, paused: false, reduced: false, names: false, walkers: true, flows: false, bird: false, log: false,
+  sel: null, seg: -1, time: 0, dirty: true, fly: null, mode: 'home', sideOpen: true, tab: 'topics', query: '', logFilter: 'all'
+};
+const isMobile = () => window.matchMedia('(max-width: 800px)').matches;
+
+let renderer, scene, camera, controls, labelRenderer, glHost, center = null;
+let sky, skyMat, hemi, sun, fill, waterMats = [], glowMat, solidMat, poolMat, mountainBands = [], clouds = [], boats = [];
+let kitMeshes = [], smallMeshes = [], ownerIndex = new Map(), islandCaps = [];
+let exchangeClock = null;
+
+// ====================================================================
+// 幾何零件
+// ====================================================================
+const GEO = {};
+const GLOW_KINDS = new Set(['glowbox', 'glowsphere']);
+function buildGeometries() {
+  GEO.box = new THREE.BoxGeometry(1, 1, 1);
+  GEO.rbox = new RoundedBoxGeometry(1, 1, 1, 2, 0.12);
+  GEO.cyl = new THREE.CylinderGeometry(.5, .5, 1, 14);
+  GEO.cone = new THREE.ConeGeometry(.5, 1, 14);
+  GEO.sphere = new THREE.SphereGeometry(.5, 16, 12);
+  GEO.ico = new THREE.IcosahedronGeometry(.5, 1);
+  GEO.dome = new THREE.SphereGeometry(.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+  GEO.torus = new THREE.TorusGeometry(.5, .12, 8, 24);
+  const sh = new THREE.Shape(); sh.moveTo(-.5, -.5); sh.lineTo(.5, -.5); sh.lineTo(0, .5); sh.closePath();
+  GEO.prism = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }).translate(0, 0, -.5);
+  GEO.hip = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4).rotateY(Math.PI / 4);
+  GEO.glowbox = GEO.box; GEO.glowsphere = new THREE.SphereGeometry(.5, 10, 8);
+  for (const k in GEO) GEO[k].computeBoundingSphere();
+}
+
+// ====================================================================
+// 建模 API：模型函式只呼叫 P()/B()…，由 SINK 決定變成 instance 還是一般 mesh
+// ====================================================================
+let SINK = null, FRAME = null, OWNER = null, SMALL = false;
+let M4, QT, EU, V3a, V3b;
+function initMath() { M4 = new THREE.Matrix4(); QT = new THREE.Quaternion(); EU = new THREE.Euler(); V3a = new THREE.Vector3(); V3b = new THREE.Vector3(); FRAME = new THREE.Matrix4(); }
+function P(kind, x, y, z, sx, sy, sz, color, ry = 0, rx = 0, rz = 0) {
+  EU.set(rx, ry, rz, 'YXZ'); QT.setFromEuler(EU); V3a.set(x, y, z); V3b.set(sx, sy, sz);
+  M4.compose(V3a, QT, V3b).premultiply(FRAME);
+  SINK.add(kind, M4, color, OWNER, SMALL);
+}
+const B = (x, y0, z, w, h, d, c, ry = 0) => P('box', x, y0 + h / 2, z, w, h, d, c, ry);
+const RB = (x, y0, z, w, h, d, c, ry = 0) => P('rbox', x, y0 + h / 2, z, w, h, d, c, ry);
+const CY = (x, y0, z, r, h, c, rx = 0, rz = 0) => P('cyl', x, y0 + h / 2, z, r * 2, h, r * 2, c, 0, rx, rz);
+const CN = (x, y0, z, r, h, c) => P('cone', x, y0 + h / 2, z, r * 2, h, r * 2, c);
+const SP = (x, y, z, r, c) => P('sphere', x, y, z, r * 2, r * 2, r * 2, c);
+const IC = (x, y, z, r, c, sy = 1) => P('ico', x, y, z, r * 2, r * 2 * sy, r * 2, c);
+const DM = (x, y0, z, r, c, sy = 1) => P('dome', x, y0, z, r * 2, r * 2 * sy, r * 2, c);
+const HP = (x, y0, z, w, h, d, c, ry = 0) => P('hip', x, y0 + h / 2, z, w, h, d, c, ry);
+const PR = (x, y0, z, w, h, d, c, ry = 0) => P('prism', x, y0 + h / 2, z, w, h, d, c, ry);
+const GB = (x, y0, z, w, h, d, c = C.win, ry = 0) => P('glowbox', x, y0 + h / 2, z, w, h, d, c, ry);
+const GS = (x, y, z, r, c = C.glow) => P('glowsphere', x, y, z, r * 2, r * 2, r * 2, c);
+const TO = (x, y, z, r, c, ry = 0, rx = 0, tube = 1) => P('torus', x, y, z, r * 2, r * 2, r * 2 * tube, c, ry, rx);
+
+// instance 收集器
+class KitSink {
+  constructor(seed) { this.groups = new Map(); this.rng = mulberry32(seed); this.kit = true; }
+  add(kind, m, color, owner, small) {
+    const key = kind + (small ? '|s' : '');
+    let g = this.groups.get(key);
+    if (!g) { g = { kind, small, list: [] }; this.groups.set(key, g); }
+    const j = 1 + (this.rng() * 2 - 1) * 0.0072;
+    const mm = m.clone(); mm.scale(new THREE.Vector3(j, j, j));
+    g.list.push({ m: mm, c: new THREE.Color(color), owner });
+  }
+  build(parent) {
+    for (const g of this.groups.values()) {
+      const glow = GLOW_KINDS.has(g.kind);
+      const mesh = new THREE.InstancedMesh(GEO[g.kind], glow ? glowMat : solidMat, g.list.length);
+      mesh.userData.owners = [];
+      mesh.userData.base = [];
+      g.list.forEach((it, i) => {
+        mesh.setMatrixAt(i, it.m); mesh.setColorAt(i, it.c);
+        mesh.userData.owners.push(it.owner); mesh.userData.base.push(it.c);
+        if (it.owner) { if (!ownerIndex.has(it.owner)) ownerIndex.set(it.owner, []); ownerIndex.get(it.owner).push([mesh, i]); }
+      });
+      mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.castShadow = !glow || g.kind === 'glowbox'; mesh.receiveShadow = true;
+      mesh.computeBoundingSphere();
+      mesh.userData.kit = true;
+      parent.add(mesh); kitMeshes.push(mesh); if (g.small) smallMeshes.push(mesh);
+    }
+  }
+}
+// 一般 mesh 收集器（縮圖用）
+class MeshSink {
+  constructor(group) { this.group = group; this.kit = false; this.mats = []; }
+  add(kind, m, color) {
+    const glow = GLOW_KINDS.has(kind);
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: .78, metalness: 0, emissive: glow ? C.glow : '#000', emissiveIntensity: glow ? .35 : 0 });
+    this.mats.push(mat);
+    const mesh = new THREE.Mesh(GEO[kind], mat); mesh.matrixAutoUpdate = false; mesh.matrix.copy(m); this.group.add(mesh);
+  }
+}
+function withFrame(mat, fn) { const prev = FRAME.clone(); FRAME.multiply(mat); fn(); FRAME.copy(prev); }
+function localT(x, y, z, ry = 0, s = 1) { return new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(s, s, s)); }
+
+// 迷你人（靜態擺設用）
+function miniPerson(x, z, c, ry = 0, s = 1) {
+  withFrame(localT(x, 0, z, ry, s), () => {
+    CY(0, 0, 0, .045, .12, C.dark); RB(0, .1, 0, .11, .14, .08, c); SP(0, .27, 0, .065, '#f3d2b5'); DM(0, .272, -.005, .068, '#3a2a24', .9);
+  });
+}
+
+// ====================================================================
+// 細項 archetype：單位空間（底面 ±0.5、高 0–1.5），回傳頂端高度
+// ====================================================================
+const MODELS = {
+  house(r, it) {
+    RB(0, 0, 0, .92, .08, .92, C.curb);
+    B(0, .08, 0, .7, .5, .6, C.wall);
+    B(0, .56, 0, .8, .05, .7, C.eave);
+    HP(0, .6, 0, .84, .4, .74, C.coral);
+    GB(-.17, .26, .301, .14, .16, .02); GB(.17, .26, .301, .14, .16, .02);
+    GB(.351, .26, 0, .02, .16, .14);
+    B(0, .08, .302, .13, .24, .02, C.wood);
+    B(.2, .74, -.12, .08, .2, .08, C.eave);
+    CY(-.34, .08, .34, .07, .08, C.stone); IC(-.34, .2, .34, .08, C.leaf2);
+    return 1.0;
+  },
+  office(r, it) {
+    RB(0, 0, 0, .94, .07, .94, C.curb);
+    const floors = 4;
+    B(0, .07, 0, .66, .2, .62, C.stone);
+    for (let f = 0; f < floors; f++) {
+      const y = .27 + f * .25;
+      B(0, y, 0, .62, .25, .58, f % 2 ? C.wall : '#efe2d0');
+      for (let k = -1; k <= 1; k++) { GB(k * .18, y + .06, .291, .12, .13, .02); GB(.311, y + .06, k * .17, .02, .13, .11); }
+    }
+    B(0, .27 + floors * .25, 0, .7, .05, .66, C.eave);
+    B(.12, .32 + floors * .25, -.1, .2, .1, .2, C.stone);
+    IC(-.18, .38 + floors * .25, .12, .1, C.leaf1); IC(-.04, .36 + floors * .25, .16, .07, C.leaf2);
+    B(0, .07, .315, .2, .18, .02, C.glass);
+    return 1.45;
+  },
+  exchange(r, it) {
+    RB(0, 0, 0, 1, .06, .96, C.curb);
+    B(0, .06, .05, .92, .05, .86, C.stone); B(0, .11, .03, .86, .05, .8, '#d6c8bb'); B(0, .16, 0, .8, .05, .74, C.cream);
+    B(0, .21, -.08, .72, .5, .5, C.wall);
+    for (let k = 0; k < 6; k++) CY(-.3 + k * .12, .21, .23, .032, .5, C.cream);
+    B(0, .71, .02, .82, .07, .64, C.cream);
+    PR(0, .78, .02, .84, .22, .66, C.coral);
+    B(0, .2, .18, .14, .3, .02, C.wood);
+    GB(-.2, .3, .171, .1, .18, .02); GB(.2, .3, .171, .1, .18, .02);
+    B(0, .95, -.08, .3, .3, .22, C.wall); HP(0, 1.25, -.08, .34, .22, .26, C.eave);
+    clockFace(0, 1.1, .035, .12);
+    return 1.5;
+  },
+  hall(r, it) {
+    RB(0, 0, 0, .96, .07, .9, C.curb);
+    B(0, .07, -.04, .86, .46, .62, C.wall);
+    B(0, .53, -.04, .92, .05, .68, C.eave);
+    DM(0, .58, -.04, .3, C.teal, .7);
+    B(0, .38, .275, .8, .14, .04, C.ink);
+    for (let k = 0; k < 9; k++) GB(-.34 + k * .085, .405, .3, .06, .07, .02, k % 3 === 1 ? '#f0a58a' : C.yellow);
+    for (let k = -1; k <= 1; k++) GB(k * .24, .14, .271, .14, .18, .02);
+    B(0, .07, .32, .3, .02, .14, C.stone);
+    return 1.0;
+  },
+  indexTower(r, it) {
+    RB(0, 0, 0, .96, .07, .9, C.curb);
+    B(0, .07, 0, .86, .05, .7, C.stone);
+    const hs = [.32, .5, .4, .66, .58, .82, .74];
+    let top = 0;
+    hs.forEach((h, k) => {
+      const x = -.36 + k * .12, upc = k === 0 || hs[k] > hs[k - 1];
+      B(x, .12 + h * .2, 0, .022, h * .9, .022, C.dark);
+      B(x, .12 + h * .32, 0, .085, h * .55, .085, upc ? C.up : C.down);
+      top = Math.max(top, .12 + h * 1.1);
+    });
+    CY(.36, .12, -.22, .015, .95, C.dark); SP(.36, 1.12, -.22, .09, C.yellow);
+    TO(.36, 1.12, -.22, .12, C.coral, 0, Math.PI / 2, .4);
+    return 1.25;
+  },
+  gate(r, it) {
+    RB(0, 0, 0, .96, .06, .96, C.curb);
+    B(-.36, .06, -.1, .14, .7, .16, C.cream); B(.36, .06, -.1, .14, .7, .16, C.cream);
+    TO(0, .66, -.1, .38, C.coral, 0, 0, .9);
+    B(0, .76, -.1, .5, .12, .06, C.yellow);
+    B(0, .06, .15, .26, .012, .7, '#b8322a');
+    CY(-.22, .06, .3, .02, .3, C.wood); CY(.22, .06, .3, .02, .3, C.wood);
+    B(0, .32, .3, .44, .035, .015, C.coral); SP(0, .335, .31, .04, C.coral);
+    RB(.3, .06, .34, .16, .14, .12, C.wood);
+    miniPerson(-.08, .38, C.ink, 0, .8);
+    return 1.15;
+  },
+  greenhouse(r, it) {
+    RB(0, 0, 0, .98, .07, .94, C.curb);
+    B(0, .07, -.05, .76, .04, .64, C.wood);
+    B(0, .11, -.05, .72, .36, .6, C.glass);
+    PR(0, .47, -.05, .74, .26, .62, '#9ec3bf', Math.PI / 2);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { CN(-.22 + i * .22, .11, -.25 + j * .2, .04, .1, C.leaf1); }
+    CY(.33, .07, .32, .05, .22, '#f3f0ea'); CN(.33, .29, .32, .05, .1, C.coral);
+    B(.33, .07, .32, .14, .05, .02, C.coral); B(.33, .07, .32, .02, .05, .14, C.coral);
+    CY(-.3, .07, .32, .06, .06, C.stone); CN(-.3, .13, .32, .03, .08, C.leaf2); IC(-.27, .2, .32, .03, C.leaf1, .5);
+    return 1.0;
+  },
+  rocket(r, it) {
+    RB(0, 0, 0, .9, .07, .9, C.curb);
+    CY(0, .07, 0, .32, .06, C.stone);
+    B(-.28, .13, -.1, .05, .7, .05, C.dark); B(-.2, .7, -.1, .2, .03, .03, C.dark);
+    CY(0, .25, 0, .12, .62, '#f6f2ec'); CN(0, .87, 0, .12, .26, C.coral);
+    SP(0, .62, .11, .045, C.teal);
+    for (let k = 0; k < 3; k++) { const a = k * Math.PI * 2 / 3; B(Math.sin(a) * .13, .2, Math.cos(a) * .13, .03, .2, .12, C.coral, a); }
+    CN(0, .13, 0, .1, .12, C.yellow);
+    CN(.32, .07, .26, .03, .1, C.leaf1); CN(.26, .07, .32, .025, .08, C.leaf2);
+    return 1.15;
+  },
+  basket(r, it) {
+    RB(0, 0, 0, .94, .07, .94, C.curb);
+    CY(0, .07, 0, .38, .34, C.wood);
+    for (let k = 0; k < 4; k++) B(0, .12 + k * .075, 0, .79, .012, .79, '#9a6e4c', k * .4);
+    TO(0, .41, 0, .38, '#9a6e4c', 0, Math.PI / 2, .5);
+    const cols = [C.coral, C.yellow, C.aqua, C.blue, C.pink, C.leaf1, C.teal, '#f0a58a'];
+    let n = 0;
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+      if (Math.hypot(i, j) > 1.3) continue;
+      const h = .1 + ((i * 7 + j * 13 + 20) % 5) * .03;
+      RB(i * .19, .38, j * .19, .15, h, .15, cols[n++ % cols.length], (i + j) * .3);
+    }
+    TO(0, .45, 0, .32, C.wood, 0, 0, .35);
+    return 1.0;
+  },
+  meeting(r, it) {
+    RB(0, 0, 0, .96, .07, .9, C.curb);
+    B(0, .07, -.32, .7, .5, .04, C.ink); GB(0, .14, -.296, .62, .38, .01, '#e9eef0');
+    B(-.15, .28, -.29, .1, .12, .01, C.coral); B(.02, .22, -.29, .1, .18, .01, C.aqua); B(.18, .25, -.29, .1, .15, .01, C.yellow);
+    B(0, .07, .08, .6, .03, .26, C.wood);
+    CY(-.25, .07, .08, .02, .14, C.dark); CY(.25, .07, .08, .02, .14, C.dark);
+    B(0, .21, .08, .6, .03, .26, C.wood);
+    for (let k = -1; k <= 1; k++) { miniPerson(k * .2, .32, [C.blue, C.coral, C.green][k + 1], Math.PI, .85); }
+    miniPerson(-.38, -.12, C.ink, Math.PI / 2, .9);
+    return 1.0;
+  },
+  scale(r, it) {
+    RB(0, 0, 0, .94, .07, .94, C.curb);
+    B(0, .07, 0, .3, .1, .3, C.stone);
+    CY(0, .17, 0, .04, .72, C.cream); SP(0, .92, 0, .06, C.yellow);
+    B(0, .86, 0, .74, .035, .04, C.coral);
+    [-1, 1].forEach(s => {
+      B(s * .33, .62, 0, .008, .24, .008, C.dark);
+      CY(s * .33, .6, 0, .13, .025, C.yellow);
+    });
+    for (let k = 0; k < 4; k++) RB(-.28, .07 + k * .06, .3, .26, .05, .19, k % 2 ? C.cream : '#efe6d6', k * .12);
+    for (let k = 0; k < 3; k++) RB(.3, .07 + k * .06, .3, .22, .05, .17, k % 2 ? '#e8dcc6' : C.cream, -k * .15);
+    return 1.05;
+  },
+  vault(r, it) {
+    RB(0, 0, 0, .96, .07, .9, C.curb);
+    B(0, .07, -.2, .86, .66, .3, C.stone);
+    CY(0, .4, -.04, .27, .05, C.metal, Math.PI / 2);
+    TO(0, .4, -.01, .27, C.dark, 0, 0, .6);
+    for (let k = 0; k < 3; k++) P('box', 0, .4, .01, .4, .025, .02, C.dark, 0, 0, k * Math.PI / 3);
+    CY(0, .4, .02, .05, .03, C.yellow, Math.PI / 2);
+    [[-.3, .3, 4], [-.15, .36, 6], [.28, .3, 5], [.15, .38, 3]].forEach(([x, z, n]) => { for (let k = 0; k < n; k++) CY(x, .07 + k * .03, z, .06, .026, C.yellow); });
+    return 1.0;
+  },
+  esg(r, it) {
+    RB(0, 0, 0, .96, .07, .96, C.leaf3);
+    for (let k = 0; k < 2; k++) { B(-.2, .07, -.25 + k * .22, .02, .1, .02, C.dark); P('box', -.2, .2, -.25 + k * .22, .44, .02, .18, C.teal, 0, -0.5); }
+    CY(.3, .07, -.25, .018, .8, C.cream); SP(.3, .87, -.22, .035, C.cream);
+    for (let k = 0; k < 3; k++) P('box', .3, .87, -.2, .04, .34, .012, C.cream, 0, 0, k * Math.PI * 2 / 3 + .3);
+    for (let k = 0; k < 3; k++) { CY(-.3 + k * .14, .07, .3, .012, .08, C.wood); IC(-.3 + k * .14, .19, .3, .05, k % 2 ? C.leaf1 : C.leaf2); }
+    RB(.25, .07, .25, .2, .2, .2, '#7fae6a'); IC(.25, .3, .25, .06, C.leaf1, .4);
+    return 1.0;
+  },
+  carbon(r, it) {
+    RB(0, 0, 0, .94, .07, .94, C.curb);
+    const cubes = [[-.2, 0, -.15], [.12, 0, -.18], [-.05, 0, .16], [-.05, 1, -.04], [.26, 0, .2]];
+    cubes.forEach(([x, l, z], k) => {
+      RB(x, .07 + l * .24, z, .24, .24, .24, k % 2 ? '#86b36f' : C.leaf3, k * .4);
+      IC(x, .07 + l * .24 + .25, z, .06, C.leaf1, .35);
+    });
+    CY(-.34, .07, .32, .015, .3, C.wood); B(-.34, .3, .32, .14, .1, .02, C.cream);
+    return 0.9;
+  },
+  booth(r, it) {
+    RB(0, 0, 0, .94, .07, .94, C.curb);
+    B(-.2, .07, -.1, .34, .5, .34, C.cream); B(-.2, .57, -.1, .4, .05, .4, C.coral);
+    GS(-.2, .7, -.1, .07, '#ff9a6a'); CY(-.2, .62, -.1, .02, .04, C.dark);
+    B(-.2, .25, .075, .26, .12, .02, C.glass);
+    withFrame(localT(.24, 0, .12, -.3), () => {
+      RB(0, .2, 0, .34, .34, .08, C.teal);
+      P('prism', 0, .14, 0, .34, .14, .08, C.teal, 0, 0, Math.PI);
+      B(0, .3, .045, .05, .18, .01, C.cream); B(0, .37, .045, .14, .05, .01, C.cream);
+      CY(0, .07, -.06, .02, .2, C.dark);
+    });
+    miniPerson(-.2, .3, C.yellow, 0, .85);
+    return 0.95;
+  },
+  classroom(r, it) {
+    RB(0, 0, 0, .96, .07, .9, C.curb);
+    B(0, .07, -.34, .74, .44, .04, C.wood); B(0, .14, -.315, .66, .3, .01, '#3d5a4c');
+    B(-.15, .3, -.307, .2, .01, .005, C.cream); B(.1, .24, -.307, .26, .01, .005, C.cream);
+    for (let i = -1; i <= 1; i += 2) for (let j = 0; j < 2; j++) {
+      B(i * .2, .07, -.04 + j * .26, .26, .02, .14, C.wood); B(i * .2, .07, -.04 + j * .26, .22, .1, .02, C.dark);
+      B(i * .2, .17, -.04 + j * .26, .26, .02, .14, C.wood);
+      miniPerson(i * .2, .06 + j * .26 + .09, [C.yellow, C.blue, C.coral, C.aqua][j * 2 + (i + 1) / 2], Math.PI, .7);
+    }
+    miniPerson(.36, -.2, C.green, Math.PI / 2 + .4, .9);
+    return 0.95;
+  },
+  server(r, it) {
+    RB(0, 0, 0, .96, .07, .92, C.curb);
+    for (let k = 0; k < 3; k++) {
+      const x = -.3 + k * .2;
+      B(x, .07, -.12, .16, .62, .3, C.dark);
+      for (let j = 0; j < 6; j++) { B(x, .14 + j * .09, .031, .13, .05, .01, '#4c4545'); GB(x + .045, .155 + j * .09, .037, .02, .02, .01, j % 3 === 0 ? '#9fe0a8' : C.glow); }
+    }
+    B(.32, .07, .1, .04, .38, .04, C.dark);
+    B(.32, .3, .14, .34, .24, .03, C.ink, -.4);
+    withFrame(localT(.32, 0, .14, -.4), () => {
+      GB(0, .32, .017, .3, .2, .01, '#e9f1f0');
+      for (let k = 0; k < 5; k++) B(-.11 + k * .055, .34, .024, .03, .04 + k * .025, .006, k % 2 ? C.aqua : C.coral);
+    });
+    return 1.0;
+  },
+  screen(r, it) {
+    RB(0, 0, 0, .94, .07, .9, C.curb);
+    B(0, .07, -.05, .1, .3, .08, C.dark); B(0, .07, -.05, .4, .03, .26, C.dark);
+    B(0, .36, -.05, .82, .52, .05, C.ink);
+    GB(0, .4, -.02, .74, .44, .01, '#eef3f2');
+    const pts = [.1, .18, .14, .26, .22, .32, .28, .38];
+    pts.forEach((h, k) => { if (k) { const x0 = -.3 + (k - 1) * .085, y0 = .45 + pts[k - 1] * .6, x1 = -.3 + k * .085, y1 = .45 + h * .6; const len = Math.hypot(x1 - x0, y1 - y0); P('box', (x0 + x1) / 2, (y0 + y1) / 2, -.008, len, .018, .01, C.coral, 0, 0, Math.atan2(y1 - y0, x1 - x0)); } });
+    for (let k = 0; k < 6; k++) B(-.28 + k * .11, .43, -.008, .06, .04 + (k % 3) * .02, .006, C.aqua);
+    miniPerson(.32, .3, C.blue, Math.PI + .5, .85);
+    return 1.0;
+  },
+  podium(r, it) {
+    RB(0, 0, 0, .94, .07, .9, C.curb);
+    RB(0, .07, 0, .26, .34, .3, C.yellow); RB(-.27, .07, 0, .26, .24, .3, C.cream); RB(.27, .07, 0, .26, .16, .3, '#f0a58a');
+    B(0, .25, .151, .06, .1, .01, C.ink); B(-.27, .19, .151, .1, .08, .01, C.ink); B(.27, .14, .151, .1, .06, .01, C.ink);
+    CY(0, .41, 0, .03, .1, C.yellow); CY(0, .51, 0, .09, .12, '#e9c64a'); TO(0, .58, 0, .09, '#e9c64a', 0, Math.PI / 2, .5);
+    miniPerson(-.27, 0, C.coral, 0, .75); withFrame(localT(.27, .16, 0, 0, .75), () => miniPerson(0, 0, C.aqua));
+    return 0.85;
+  },
+  coin(r, it) {
+    RB(0, 0, 0, .9, .07, .9, C.curb);
+    B(0, .07, -.05, .2, .12, .14, C.stone);
+    CY(0, .5, -.05, .34, .09, '#f0c94a', Math.PI / 2);
+    TO(0, .5, -.05, .3, '#d9ad2c', 0, 0, .25);
+    B(0, .5, .002, .06, .3, .01, '#d9ad2c'); B(0, .5, .002, .2, .05, .01, '#d9ad2c');
+    [[-.3, .28, 5], [.3, .26, 3], [.2, .36, 7]].forEach(([x, z, n]) => { for (let k = 0; k < n; k++) CY(x, .07 + k * .03, z, .07, .026, '#f0c94a'); });
+    return 1.0;
+  },
+  clock(r, it) {
+    RB(0, 0, 0, .9, .07, .9, C.curb);
+    B(0, .07, 0, .16, .4, .16, C.wood);
+    CY(0, .7, 0, .3, .08, C.cream, Math.PI / 2);
+    TO(0, .7, 0, .3, C.coral, 0, 0, .55);
+    P('box', .07, .74, .05, .02, .18, .012, C.ink, 0, 0, -.8);
+    P('box', 0, .78, .05, .02, .2, .012, C.ink, 0, 0, 0);
+    SP(0, .7, .05, .025, C.ink);
+    DM(-.18, .98, 0, .07, C.yellow); DM(.18, .98, 0, .07, C.yellow);
+    CY(-.18, .94, 0, .015, .05, C.dark); CY(.18, .94, 0, .015, .05, C.dark);
+    return 1.1;
+  },
+  book(r, it) {
+    RB(0, 0, 0, .9, .07, .9, C.curb);
+    B(0, .07, 0, .12, .18, .12, C.wood);
+    P('box', -.19, .38, 0, .38, .03, .5, C.coral, 0, 0, .35);
+    P('box', .19, .38, 0, .38, .03, .5, C.coral, 0, 0, -.35);
+    P('box', -.18, .4, 0, .34, .035, .46, C.cream, 0, 0, .35);
+    P('box', .18, .4, 0, .34, .035, .46, C.cream, 0, 0, -.35);
+    for (let k = 0; k < 3; k++) { P('box', -.18, .43, -.12 + k * .1, .22, .006, .015, C.stone, 0, 0, .35); P('box', .18, .43, -.12 + k * .1, .22, .006, .015, C.stone, 0, 0, -.35); }
+    [[C.blue, 0], [C.yellow, .3], [C.aqua, -.2]].forEach(([c, ry], k) => B(.3, .07 + k * .06, .32, .22, .055, .16, c, ry));
+    return 0.85;
+  },
+  globe(r, it) {
+    RB(0, 0, 0, .9, .07, .9, C.curb);
+    CY(0, .07, 0, .16, .05, C.wood); CY(0, .12, 0, .025, .2, C.wood);
+    SP(0, .58, 0, .27, '#7db4c9');
+    IC(.1, .66, .16, .1, C.leaf1, .6); IC(-.14, .52, .18, .09, C.leaf2, .6); IC(.04, .44, -.2, .1, C.leaf1, .6); IC(-.08, .74, -.12, .08, C.leaf2, .6);
+    IC(.16, .56, .19, .03, C.coral);
+    TO(0, .58, 0, .31, C.yellow, 0, 0, .25);
+    RB(.32, .07, .3, .16, .2, .1, '#8a5a3c'); B(.32, .27, .3, .07, .03, .02, C.dark);
+    return 1.0;
+  },
+  magnifier(r, it) {
+    RB(0, 0, 0, .9, .07, .9, C.curb);
+    for (let k = 0; k < 3; k++) B(-.12, .07 + k * .025, .1, .44, .02, .3, k % 2 ? C.cream : '#efe6d6', k * .1);
+    withFrame(localT(.05, .55, 0, -.4), () => {
+      TO(0, 0, 0, .25, C.ink, 0, 0, 1.1);
+      CY(0, 0, 0, .23, .02, '#bfe0de', Math.PI / 2);
+      P('cyl', .25, -.25, 0, .07, .3, .07, C.wood, 0, 0, Math.PI / 4);
+    });
+    return 1.0;
+  }
+};
+// 交易所大鐘：kit 模式登記成動態物件，縮圖模式畫成靜態
+function clockFace(x, y, z, r) {
+  if (SINK.kit) { exchangeClock = { matrix: FRAME.clone().multiply(localT(x, y, z)), r }; }
+  else { CY(x, y, z, r, .03, C.cream, Math.PI / 2); TO(x, y, z + .01, r, C.coral, 0, 0, .5); }
+}
+
+// ====================================================================
+// 街道家具與樹
+// ====================================================================
+function bigTree(kind, x, z, s, rng) {
+  withFrame(localT(x, TOP, z, rng.r(0, 6), s), () => {
+    switch (kind) {
+      case 'pine': CY(0, 0, 0, .05, .2, C.wood); CN(0, .15, 0, .3, .4, C.leaf3); CN(0, .38, 0, .24, .34, '#7d9a66'); CN(0, .58, 0, .16, .3, C.leaf2); break;
+      case 'sakura': CY(0, 0, 0, .05, .34, C.wood); IC(0, .52, 0, .26, C.pink); IC(.16, .44, .06, .16, '#f6c7d3'); IC(-.14, .46, -.06, .17, '#eea7ba'); break;
+      case 'fruit': CY(0, 0, 0, .05, .3, C.wood); IC(0, .5, 0, .27, C.leaf2); for (let k = 0; k < 5; k++) { const a = k * 1.3; SP(Math.cos(a) * .22, .45 + (k % 2) * .1, Math.sin(a) * .22, .035, '#f0a03c'); } break;
+      case 'palm': for (let k = 0; k < 4; k++) CY(k * .02, k * .14, 0, .045 - k * .005, .15, k % 2 ? C.wood : '#9c7150'); for (let k = 0; k < 6; k++) P('box', .07 + Math.cos(k) * .14, .6, Math.sin(k) * .14, .3, .02, .08, C.leaf1, -k, 0, -.35); break;
+      case 'willow': CY(0, 0, 0, .05, .3, C.wood); DM(0, .26, 0, .3, '#9cb978', 1.4); for (let k = 0; k < 6; k++) { const a = k * 1.05; P('ico', Math.cos(a) * .24, .35, Math.sin(a) * .24, .12, .36, .12, C.leaf2); } break;
+      default: CY(0, 0, 0, .05, .26, C.wood); SP(0, .48, 0, .26, C.leaf1); SP(.12, .4, .1, .14, C.leaf2);
+    }
+  });
+}
+function streetFurniture(is, cx, cz, rng) {
+  // 路燈：步道內側的六個頂點方向
+  SMALL = true;
+  for (let k = 0; k < 6; k++) {
+    const a = (30 + 60 * k) * Math.PI / 180, rr = 1.52;
+    const x = cx + Math.cos(a) * rr, z = cz + Math.sin(a) * rr;
+    withFrame(localT(x, TOP, z), () => { CY(0, 0, 0, .018, .34, '#4a4040'); B(0, .34, 0, .07, .015, .07, '#4a4040'); GS(0, .38, 0, .035); });
+    LAMPS.push([x, z]);
+  }
+  // 盆栽、灌木、花：邊中點附近
+  for (let k = 0; k < 6; k++) {
+    const a = (60 * k + 18) * Math.PI / 180, rr = 1.46;
+    const x = cx + Math.cos(a) * rr, z = cz + Math.sin(a) * rr;
+    withFrame(localT(x, TOP, z, rng.r(0, 6)), () => {
+      const t = k % 3;
+      if (t === 0) { CY(0, 0, 0, .06, .07, C.stone); IC(0, .12, 0, .07, C.leaf2); }
+      else if (t === 1) { IC(0, .05, 0, .09, C.leaf1, .8); IC(.07, .04, .03, .06, C.leaf2, .8); }
+      else { for (let f = 0; f < 4; f++) SP(Math.cos(f * 1.6) * .06, .03, Math.sin(f * 1.6) * .06, .025, [C.pink, C.yellow, '#f0a58a', '#fff'][f]); IC(0, .02, 0, .05, C.leaf2, .5); }
+    });
+  }
+  SMALL = false;
+}
+
+let LAMPS = [];
+let ITEM_TOPS = {};   // itemId -> Vector3（模型頂端世界座標）
+let ITEM_CENTER = {}; // itemId -> Vector3
+
+// 細項格子配置
+function layoutIsland(is, cx, cz) {
+  const n = is.items.length - 1;
+  const cell = clamp(0.62 - (n - 2) * 0.04, 0.46, 0.62);
+  const cand = [];
+  for (let row = -4; row <= 4; row++) for (let col = -4; col <= 4; col++) {
+    const x = (col + (row & 1 ? .5 : 0)) * cell, z = row * cell * .92;
+    if (Math.hypot(x, z) > 1.36 - cell * .45) continue;
+    if (Math.abs(x) < .58 + cell * .5 && z < 0 + cell * .5 && z > -1.2) continue; // 主建物區
+    cand.push({ x, z, d: Math.hypot(x, z - .55) + Math.abs(x) * .05 });
+  }
+  cand.sort((a, b) => a.d - b.d);
+  const out = [{ x: 0, z: -.58, s: 1.15 }];
+  for (let i = 0; i < n; i++) { const c = cand[i] || { x: 0, z: .8 }; out.push({ x: c.x, z: c.z, s: cell * .9 }); }
+  return out.map(o => ({ x: cx + o.x, z: cz + o.z, s: o.s }));
+}
+
+// ====================================================================
+// 貼圖
+// ====================================================================
+function canvasTex(w, h, draw, repeat = true) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); draw(g, w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; } t.anisotropy = 4; return t;
+}
+function groundTexture(kind, rng) {
+  return canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#f7efe4'; g.fillRect(0, 0, w, h);
+    if (kind === 'brick') {
+      for (let y = 0; y < 16; y++) for (let x = -1; x < 9; x++) {
+        const ox = (y & 1) * 16; const v = 236 + Math.floor(rng.f() * 14);
+        g.fillStyle = `rgb(${v + 6},${v - 4},${v - 16})`; g.fillRect(x * 32 + ox + 1, y * 16 + 1, 30, 14);
+      }
+    } else if (kind === 'speck') {
+      for (let i = 0; i < 900; i++) { const v = 205 + Math.floor(rng.f() * 40); g.fillStyle = `rgba(${v},${v - 12},${v - 26},.55)`; const s = 1 + rng.f() * 3; g.beginPath(); g.arc(rng.f() * w, rng.f() * h, s, 0, 7); g.fill(); }
+    } else {
+      g.strokeStyle = 'rgba(205,185,160,.35)'; g.lineWidth = 9;
+      for (let i = -8; i < 16; i++) { g.beginPath(); g.moveTo(i * 32, 0); g.lineTo(i * 32 + 256, 256); g.stroke(); }
+    }
+  });
+}
+function bandTexture() {
+  return canvasTex(512, 32, (g, w, h) => {
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#cfc7c0';
+    for (let x = 0; x < w; x += 32) { g.beginPath(); g.moveTo(x, h); g.lineTo(x + 16, 6); g.lineTo(x + 32, h); g.fill(); }
+    g.fillStyle = '#e8e2dc'; g.fillRect(0, 0, w, 5);
+  });
+}
+
+// ====================================================================
+// 場景
+// ====================================================================
+function axial(q, r) { return new THREE.Vector3(SQ3 * SPACING * (q + r / 2), 0, 1.5 * SPACING * r); }
+function hexRot(geo) { return geo.rotateZ(Math.PI / 6).rotateX(-Math.PI / 2); }
+
+const WATER_VS = `
+varying vec3 vW;
+#include <fog_pars_vertex>
+void main(){ vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; vec4 mvPosition = viewMatrix*w; gl_Position = projectionMatrix*mvPosition;
+#include <fog_vertex>
+}`;
+const WATER_FS = `
+uniform vec3 uShallow; uniform vec3 uDeep; uniform vec3 uCenter; uniform float uTime; uniform float uNight; uniform float uSide;
+varying vec3 vW;
+#include <common>
+#include <fog_pars_fragment>
+void main(){
+  vec2 p = vW.xz; float d = length(p - uCenter.xz);
+  float w1 = sin(p.x*.55 + uTime*.6) * sin(p.y*.48 - uTime*.45);
+  float w2 = sin((p.x + p.y)*.9 - uTime*.8) * .5;
+  float k = smoothstep(8., 46., d);
+  vec3 c = mix(uShallow, uDeep, clamp(k + (w1 + w2)*.05, 0., 1.));
+  float gl = pow(max(0., sin(p.x*3.1 + uTime*1.3) * sin(p.y*2.7 - uTime*1.1)), 16.) * .18 * (1. - uNight*.8) * (1. - k*.6);
+  c += gl;
+  if (uSide > .5) { float t = smoothstep(-.9, .6, vW.y); c = mix(uDeep*.9, uShallow*1.06, t); }
+  gl_FragColor = vec4(c, 1.);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+  #include <fog_fragment>
+}`;
+function waterMaterial(side) {
+  const m = new THREE.ShaderMaterial({
+    uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
+      uShallow: { value: new THREE.Color('#a4d4da') }, uDeep: { value: new THREE.Color('#6fa9b8') }, uCenter: { value: new THREE.Vector3() },
+      uTime: { value: 0 }, uNight: { value: 0 }, uSide: { value: side ? 1 : 0 }
+    }]),
+    vertexShader: WATER_VS, fragmentShader: WATER_FS, fog: true
+  });
+  waterMats.push(m); return m;
+}
+
+function buildWorld() {
+  const rng = rngFor(20260101);
+  // 島中心
+  ISL.forEach(is => { is.pos = axial(is.q, is.r); });
+  center = ISL.reduce((a, is) => a.add(is.pos), new THREE.Vector3()).divideScalar(ISL.length);
+  center.y = TOP;
+
+  // 天空
+  skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false, fog: false, toneMapped: false,
+    uniforms: { uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSun: { value: new THREE.Color() }, uNight: { value: 0 } },
+    vertexShader: `varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uSunDir; uniform vec3 uSun; uniform float uNight; varying vec3 vDir;
+      float h3(vec3 p){ p = fract(p*.3183099 + .1); p *= 17.; return fract(p.x*p.y*p.z*(p.x + p.y + p.z)); }
+      void main(){ vec3 d = normalize(vDir); vec3 c = mix(uHorizon, uTop, smoothstep(-.02, .55, d.y));
+        float s = max(dot(d, normalize(uSunDir)), 0.); c += uSun*pow(s, 18.)*.35*(1. - uNight*.75);
+        if (uNight > .01 && d.y > .02) { float h = h3(floor(d*180.)); if (h > .9965) c += vec3(.9, .92, 1.)*uNight*smoothstep(.02, .25, d.y)*(.5 + .5*(h - .9965)/.0035); }
+        gl_FragColor = vec4(c, 1.);
+        #include <colorspace_fragment>
+      }`
+  });
+  sky = new THREE.Mesh(new THREE.SphereGeometry(170, 32, 16), skyMat); sky.position.copy(center); sky.renderOrder = -10; sky.frustumCulled = false; scene.add(sky);
+  scene.fog = new THREE.Fog(0xf4eee3, 42, 150);
+
+  // 光
+  hemi = new THREE.HemisphereLight(0xeef6fa, 0x8f8270, 1.3); scene.add(hemi);
+  sun = new THREE.DirectionalLight(0xfff1de, 2.8); sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 22, bottom: -22, near: 1, far: 90 });
+  sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.045; sun.shadow.radius = 3;
+  sun.target.position.copy(center); scene.add(sun, sun.target);
+  fill = new THREE.DirectionalLight(0xbfd6ff, .35); fill.position.set(center.x - 20, 14, center.z - 18); fill.target.position.copy(center); scene.add(fill, fill.target);
+
+  // 水
+  const wm = waterMaterial(false); wm.uniforms.uCenter.value.copy(center);
+  const water = new THREE.Mesh(new THREE.CircleGeometry(160, 64).rotateX(-Math.PI / 2), wm);
+  water.position.set(center.x, WATER_Y, center.z); water.receiveShadow = false; water.userData.water = true; scene.add(water);
+
+  // 材質
+  solidMat = new THREE.MeshStandardMaterial({ roughness: .78, metalness: 0 });
+  glowMat = new THREE.MeshStandardMaterial({ roughness: .6, metalness: 0, emissive: new THREE.Color(C.glow), emissiveIntensity: 0 });
+
+  // 島體
+  const capGeos = { brick: [], speck: [], stripe: [] };
+  const walls = [], bands = [], curbs = [], walks = [], shallow = [], foam = [];
+  const tint = ['#f8e7d6', '#eef0e2', '#f6e3e3', '#eaf0e0', '#f9f0d6', '#e9e9f2', '#f7e6e8', '#e4eddf', '#e3eeef', '#f8efd8', '#f6e5dc', '#e3efee'];
+  const colorize = (geo, hex) => { const c = new THREE.Color(hex); const n = geo.attributes.position.count; const a = new Float32Array(n * 3); for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; } geo.setAttribute('color', new THREE.BufferAttribute(a, 3)); return geo; };
+  ISL.forEach((is, i) => {
+    const { x, z } = is.pos;
+    const cap = hexRot(new THREE.CircleGeometry(R - .05, 6)).translate(x, TOP, z);
+    const uv = cap.attributes.uv, pos = cap.attributes.position;
+    for (let k = 0; k < pos.count; k++) uv.setXY(k, pos.getX(k) / 2.2, pos.getZ(k) / 2.2);
+    capGeos[is.ground].push(colorize(cap, tint[i % tint.length]));
+    const wallH = TOP - .16 - (WATER_Y - .7);
+    walls.push(new THREE.CylinderGeometry(R, R, wallH, 6, 1, true).translate(x, (TOP - .16 + WATER_Y - .7) / 2, z));
+    const band = new THREE.CylinderGeometry(R + .004, R + .004, .16, 6, 1, true).translate(x, TOP - .08, z);
+    const buv = band.attributes.uv; for (let k = 0; k < buv.count; k++) buv.setX(k, buv.getX(k) * 12);
+    bands.push(colorize(band, is.color));
+    curbs.push(hexRot(new THREE.RingGeometry(R - .09, R, 6, 1)).translate(x, TOP + .004, z));
+    walks.push(hexRot(new THREE.RingGeometry(WALK_R - .14, WALK_R + .14, 6, 1)).translate(x, TOP + .006, z));
+    shallow.push(hexRot(new THREE.RingGeometry(R, R + .7, 6, 1)).translate(x, WATER_Y + .006, z));
+    foam.push(hexRot(new THREE.RingGeometry(R, R + .16, 6, 1)).translate(x, WATER_Y + .012, z));
+  });
+  for (const k in capGeos) {
+    if (!capGeos[k].length) continue;
+    const mat = new THREE.MeshStandardMaterial({ map: groundTexture(k, rng), roughness: .92, vertexColors: true });
+    const m = new THREE.Mesh(BGU.mergeGeometries(capGeos[k]), mat); m.receiveShadow = true; m.userData.cap = true; scene.add(m); islandCaps.push(m);
+  }
+  const off = (mat, f) => { mat.polygonOffset = true; mat.polygonOffsetFactor = f; mat.polygonOffsetUnits = f; return mat; };
+  const wallMesh = new THREE.Mesh(BGU.mergeGeometries(walls), waterMaterial(true)); scene.add(wallMesh);
+  const bandMesh = new THREE.Mesh(BGU.mergeGeometries(bands), new THREE.MeshStandardMaterial({ map: bandTexture(), vertexColors: true, roughness: .85 })); bandMesh.receiveShadow = true; scene.add(bandMesh);
+  const curbMesh = new THREE.Mesh(BGU.mergeGeometries(curbs), off(new THREE.MeshStandardMaterial({ color: C.curb, roughness: .9 }), -2)); curbMesh.receiveShadow = true; scene.add(curbMesh);
+  const walkMat = off(new THREE.MeshStandardMaterial({ color: '#ecc9ae', roughness: .9, map: groundTexture('brick', rng) }), -3);
+  const wg = BGU.mergeGeometries(walks); const wuv = wg.attributes.uv, wpos = wg.attributes.position;
+  for (let k = 0; k < wpos.count; k++) wuv.setXY(k, wpos.getX(k) / 1.1, wpos.getZ(k) / 1.1);
+  const walkMesh = new THREE.Mesh(wg, walkMat); walkMesh.receiveShadow = true; scene.add(walkMesh);
+  scene.add(new THREE.Mesh(BGU.mergeGeometries(shallow), off(new THREE.MeshBasicMaterial({ color: '#d4f0ea', transparent: true, opacity: .35, depthWrite: false }), -1)));
+  scene.add(new THREE.Mesh(BGU.mergeGeometries(foam), off(new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: .55, depthWrite: false }), -2)));
+
+  // 零件庫：建物、橋、家具
+  const kit = new KitSink(77);
+  SINK = kit;
+  ISL.forEach(is => {
+    const { x, z } = is.pos;
+    const slots = layoutIsland(is, x, z);
+    is.items.forEach((it, k) => {
+      const sl = slots[k];
+      const ry = k === 0 ? 0 : rng.r(-.35, .35);
+      OWNER = 'item:' + it.id;
+      FRAME.identity().multiply(localT(sl.x, TOP, sl.z, ry, sl.s));
+      const top = (MODELS[it.model] || MODELS.house)(rng, it);
+      ITEM_TOPS[it.id] = new THREE.Vector3(sl.x, TOP + top * sl.s, sl.z);
+      ITEM_CENTER[it.id] = new THREE.Vector3(sl.x, TOP + top * sl.s * .45, sl.z);
+      it.slot = sl;
+    });
+    FRAME.identity(); OWNER = 'island:' + is.id;
+    streetFurniture(is, x, z, rng);
+    // 大樹：外圈 4–6 棵
+    const nt = rng.i(4, 6);
+    for (let k = 0; k < nt; k++) {
+      const a = (60 * k + 40 + rng.r(-6, 6)) * Math.PI / 180 + (k >= 6 ? .5 : 0);
+      bigTree(is.tree, x + Math.cos(a) * 1.4, z + Math.sin(a) * 1.4, rng.r(.75, 1.05), rng);
+    }
+    // 長椅
+    SMALL = true;
+    for (let k = 0; k < 2; k++) {
+      const a = (60 * k * 2 + 150 + rng.r(-8, 8)) * Math.PI / 180;
+      withFrame(localT(x + Math.cos(a) * 1.22, TOP, z + Math.sin(a) * 1.22, -a + Math.PI / 2), () => {
+        B(0, .07, 0, .26, .025, .08, C.wood); B(0, .1, -.035, .26, .07, .015, C.wood); B(-.11, 0, 0, .02, .07, .07, C.dark); B(.11, 0, 0, .02, .07, .07, C.dark);
+      });
+    }
+    // 島緣串燈
+    for (let e = 0; e < 6; e++) {
+      const a0 = (30 + 60 * e) * Math.PI / 180, a1 = (90 + 60 * e) * Math.PI / 180;
+      for (let s = 0; s < 7; s++) {
+        const t = (s + .5) / 7, rr = R - .045;
+        const px = x + lerp(Math.cos(a0), Math.cos(a1), t) * rr, pz = z + lerp(Math.sin(a0), Math.sin(a1), t) * rr;
+        GS(px, TOP + .05, pz, .018, s % 2 ? C.glow : '#ffe3b0');
+      }
+    }
+    SMALL = false;
+  });
+  OWNER = null; FRAME.identity();
+
+  // 橋與路網
+  buildGraph(rng);
+
+  // 遠處小島、燈塔
+  [[-17, -6, 1.2], [19, 4, 1.0], [-9, 15, .8], [14, -15, 1.1], [24, -6, .7]].forEach(([dx, dz, s], k) => {
+    const x = center.x + dx, z = center.z + dz;
+    IC(x, WATER_Y - .1, z, 1.1 * s, '#c8b98f', .35); IC(x + .3 * s, WATER_Y + .15, z - .2, .55 * s, C.leaf2, .7);
+    if (k === 1 || k === 3) { withFrame(localT(x - .2, WATER_Y + .15, z + .2, 0, s), () => { for (let j = 0; j < 4; j++) CY(0, j * .3, 0, .16 - j * .015, .3, j % 2 ? C.coral : '#fbf5ee'); B(0, 1.2, 0, .26, .03, .26, C.dark); GS(0, 1.33, 0, .1); CN(0, 1.42, 0, .14, .2, C.coral); }); }
+  });
+  kit.build(scene);
+  SINK = null;
+
+  // 交易所動態大鐘
+  if (exchangeClock) buildExchangeClock();
+
+  // 光池（加法混合，夜晚才亮）
+  poolMat = new THREE.MeshBasicMaterial({ color: C.glow, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+  const poolTex = canvasTex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); }, false);
+  poolMat.map = poolTex;
+  const spots = LAMPS.map(([x, z]) => [x, z, .55]);
+  ISL.forEach(is => { const sl = is.items[0].slot; spots.push([sl.x, sl.z + .62, .9]); });
+  const pools = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), poolMat, spots.length);
+  spots.forEach(([x, z, s], i) => { M4.compose(V3a.set(x, TOP + .012, z), QT.identity(), V3b.set(s * 2, 1, s * 2)); pools.setMatrixAt(i, M4); });
+  pools.renderOrder = 2; scene.add(pools);
+}
+
+function buildExchangeClock() {
+  const g = new THREE.Group();
+  const r = exchangeClock.r;
+  const face = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .03, 24).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: C.cream, roughness: .7 }));
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(r, .02, 8, 28), new THREE.MeshStandardMaterial({ color: C.coral, roughness: .7 }));
+  rim.position.z = .012;
+  const handMat = new THREE.MeshStandardMaterial({ color: C.ink });
+  const hh = new THREE.Mesh(new THREE.BoxGeometry(.018, r * .55, .01).translate(0, r * .27, 0), handMat);
+  const mh = new THREE.Mesh(new THREE.BoxGeometry(.012, r * .85, .01).translate(0, r * .42, 0), handMat);
+  hh.position.z = mh.position.z = .022;
+  const pivot = new THREE.Group(); // 擺動支點在上方
+  [face, rim, hh, mh].forEach(o => { o.position.y -= r * 1.1; pivot.add(o); });
+  pivot.position.y = r * 1.1;
+  g.add(pivot);
+  exchangeClock.matrix.decompose(g.position, g.quaternion, g.scale);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  scene.add(g);
+  Object.assign(exchangeClock, { group: g, pivot, hh, mh, swing: 0 });
+}
+
+// ====================================================================
+// 路網：每島 12 節點，橋連相鄰島
+// ====================================================================
+const GRAPH = { nodes: [], adj: [] };
+function nodeId(islandIdx, k) { return islandIdx * 12 + k; }
+function buildGraph(rng) {
+  ISL.forEach(is => {
+    for (let k = 0; k < 12; k++) {
+      const a = k * Math.PI / 6, rr = k % 2 ? WALK_R : WALK_R * SQ3 / 2;
+      GRAPH.nodes.push(new THREE.Vector3(is.pos.x + Math.cos(a) * rr, TOP + .012, is.pos.z + Math.sin(a) * rr));
+      GRAPH.adj.push([]);
+    }
+  });
+  const link = (a, b, pts) => {
+    const len = pts ? pts.reduce((s, p, i) => i ? s + p.distanceTo(pts[i - 1]) : 0, 0) : GRAPH.nodes[a].distanceTo(GRAPH.nodes[b]);
+    GRAPH.adj[a].push({ to: b, len, pts }); GRAPH.adj[b].push({ to: a, len, pts: pts ? pts.slice().reverse() : null });
+  };
+  ISL.forEach((is, i) => { for (let k = 0; k < 12; k++) link(nodeId(i, k), nodeId(i, (k + 1) % 12)); });
+  const dirs = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]]; // 對應角度 0,60,120,180,240,300
+  const key = (q, r) => q + ',' + r; const byQR = {}; ISL.forEach((is, i) => byQR[key(is.q, is.r)] = i);
+  BRIDGES.length = 0;
+  ISL.forEach((is, i) => {
+    dirs.forEach(([dq, dr], d) => {
+      const j = byQR[key(is.q + dq, is.r + dr)];
+      if (j === undefined || j < i) return;
+      const a = nodeId(i, d * 2), b = nodeId(j, (d * 2 + 6) % 12);
+      const A = GRAPH.nodes[a], Bn = GRAPH.nodes[b];
+      const arch = rng.r(.04, .1);
+      const pts = [];
+      for (let s = 0; s <= 8; s++) { const t = s / 8; pts.push(new THREE.Vector3(lerp(A.x, Bn.x, t), TOP + .012 + Math.sin(t * Math.PI) * arch + .02, lerp(A.z, Bn.z, t))); }
+      link(a, b, pts);
+      // 甲板 9 片
+      const ang = Math.atan2(Bn.z - A.z, Bn.x - A.x), len = A.distanceTo(Bn);
+      const ext = .5; // 往島內延伸一點，蓋住步道與路緣
+      for (let s = 0; s < 9; s++) {
+        const t = (s + .5) / 9, tt = -ext / len + t * (1 + 2 * ext / len);
+        const x = lerp(A.x, Bn.x, tt), z = lerp(A.z, Bn.z, tt);
+        const y = TOP + Math.sin(clamp(tt, 0, 1) * Math.PI) * arch + .005;
+        P('box', x, y, z, (len + ext * 2) / 9 * .92, .045, .36, s % 2 ? C.wood : '#c4946c', -ang);
+        if (s % 2 === 0 && tt > 0 && tt < 1) {
+          const nx = -Math.sin(ang) * .17, nz = Math.cos(ang) * .17;
+          P('box', x + nx, y + .07, z + nz, .02, .12, .02, '#8a5a3c', -ang); P('box', x - nx, y + .07, z - nz, .02, .12, .02, '#8a5a3c', -ang);
+        }
+      }
+      [-1, 1].forEach(sg => { for (let s = 0; s < 8; s++) { const t0 = s / 8, t1 = (s + 1) / 8; const y0 = TOP + Math.sin(t0 * Math.PI) * arch + .13, y1 = TOP + Math.sin(t1 * Math.PI) * arch + .13; const nx = -Math.sin(ang) * .17 * sg, nz = Math.cos(ang) * .17 * sg; P('box', lerp(A.x, Bn.x, (t0 + t1) / 2) + nx, (y0 + y1) / 2, lerp(A.z, Bn.z, (t0 + t1) / 2) + nz, len / 8, .018, .018, '#8a5a3c', -ang, 0, Math.atan2(y1 - y0, len / 8)); } });
+      BRIDGES.push([i, j]);
+    });
+  });
+}
+const BRIDGES = [];
+function dijkstra(src, dst) {
+  const n = GRAPH.nodes.length, dist = new Array(n).fill(Infinity), prev = new Array(n).fill(-1), prevE = new Array(n).fill(null), done = new Array(n).fill(false);
+  dist[src] = 0;
+  for (; ;) {
+    let u = -1, best = Infinity; for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }
+    if (u < 0 || u === dst) break; done[u] = true;
+    for (const e of GRAPH.adj[u]) { const nd = dist[u] + e.len; if (nd < dist[e.to]) { dist[e.to] = nd; prev[e.to] = u; prevE[e.to] = e; } }
+  }
+  const pts = [GRAPH.nodes[dst].clone()]; let v = dst;
+  while (v !== src && prev[v] >= 0) { const e = prevE[v]; if (e.pts) { for (let k = e.pts.length - 2; k >= 1; k--) pts.push(e.pts[k].clone()); } pts.push(GRAPH.nodes[prev[v]].clone()); v = prev[v]; }
+  return pts.reverse();
+}
+
+// ====================================================================
+// 遠景：盆地地形、背景樹、遠山、雲、帆船
+// ====================================================================
+function buildBackdrop() {
+  const rng = rngFor(424242);
+  const noise = new SimplexNoise({ random: mulberry32(9001) });
+  const fbm = (x, z) => { let s = 0, a = 1, f = 1; for (let o = 0; o < 4; o++) { s += noise.noise(x * f, z * f) * a; a *= .5; f *= 2.03; } return s; };
+  const camDir = new THREE.Vector2(.24, .87).normalize();
+  const H = (x, z) => {
+    const dx = x - center.x, dz = z - center.z, r = Math.hypot(dx, dz) || 1;
+    let h = -1.7 + smooth(16, 50, r) * 12.5 + fbm(x * .045, z * .045) * 3.6 * smooth(12, 34, r);
+    const face = (dx * camDir.x + dz * camDir.y) / r;
+    if (h > 0) h *= 1 - .82 * smooth(-.15, .7, face);
+    if (h > .3) h = lerp(h, Math.round(h / .55) * .55, .6);
+    return h;
+  };
+  const geo = new THREE.PlaneGeometry(170, 170, 160, 160).rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position, col = new Float32Array(pos.count * 3);
+  const stops = [[-0.15, '#8fb3ad'], [.35, '#d9c9a3'], [2.2, '#aec493'], [4.6, '#a3b986'], [8.2, '#6f8a62'], [99, '#b2a38d']].map(([h, c]) => [h, new THREE.Color(c)]);
+  const tmp = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i) + center.x, z = pos.getZ(i) + center.z, h = H(x, z);
+    pos.setY(i, h);
+    let k = 0; while (h > stops[k][0]) k++;
+    tmp.copy(stops[k][1]); tmp.offsetHSL(0, 0, (fbm(x * .3, z * .3)) * .025);
+    col[i * 3] = tmp.r; col[i * 3 + 1] = tmp.g; col[i * 3 + 2] = tmp.b;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.computeVertexNormals();
+  const terrain = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 1 }));
+  terrain.position.set(center.x, 0, center.z); scene.add(terrain);
+
+  // 背景樹
+  const con = BGU.mergeGeometries([new THREE.ConeGeometry(.5, .8, 6).translate(0, .7, 0), new THREE.ConeGeometry(.4, .7, 6).translate(0, 1.05, 0), new THREE.ConeGeometry(.28, .6, 6).translate(0, 1.38, 0), new THREE.CylinderGeometry(.08, .1, .4, 5).translate(0, .2, 0)]);
+  const bl = []; const r2 = mulberry32(55);
+  for (let k = 0; k < 4; k++) { const g = new THREE.IcosahedronGeometry(.42 - k * .05, 0); const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setXYZ(i, p.getX(i) * (1 + (r2() - .5) * .2), p.getY(i) * (1 + (r2() - .5) * .2), p.getZ(i) * (1 + (r2() - .5) * .2)); g.translate((r2() - .5) * .5, .7 + k * .18, (r2() - .5) * .5); bl.push(g); }
+  bl.push(new THREE.CylinderGeometry(.07, .09, .6, 5).translate(0, .3, 0).toNonIndexed());
+  bl.forEach(g => g.deleteAttribute('uv'));
+  const brd = BGU.mergeGeometries(bl);
+  const N = isMobile() ? 1100 : 3200;
+  const treeMat = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 1 });
+  const conM = new THREE.InstancedMesh(con, treeMat, N), brdM = new THREE.InstancedMesh(brd, treeMat, N);
+  let nc = 0, nb = 0; const greens = ['#5f7d55', '#6f8a62', '#7f9a68', '#58744f', '#8aa36f'];
+  for (let i = 0; i < N * 3 && (nc < N || nb < N); i++) {
+    const a = rng.f() * Math.PI * 2, rr = 16 + rng.f() * 36;
+    const x = center.x + Math.cos(a) * rr, z = center.z + Math.sin(a) * rr, h = H(x, z);
+    if (h < .3 || h > 10) continue;
+    const s = rng.r(.55, 1.25) * (1 + rr / 80);
+    M4.compose(V3a.set(x, h - .05, z), QT.setFromEuler(EU.set(0, rng.f() * 6, 0)), V3b.set(s, s * rng.r(.85, 1.2), s));
+    tmp.set(rng.pick(greens)).offsetHSL(0, 0, rng.r(-.04, .04));
+    if (h > 4.5 ? rng.f() < .75 : rng.f() < .3) { if (nc < N) { conM.setMatrixAt(nc, M4); conM.setColorAt(nc, tmp); nc++; } }
+    else if (nb < N) { brdM.setMatrixAt(nb, M4); brdM.setColorAt(nb, tmp); nb++; }
+  }
+  conM.count = nc; brdM.count = nb; scene.add(conM, brdM);
+
+  // 三圈遠山剪影
+  [[96, 11, '#8fa79a', .3], [118, 15, '#9db1b2', .5], [142, 20, '#b3c0c6', .7]].forEach(([rad, hh, c, mixK], bi) => {
+    const segs = 180, vs = [], idx = [];
+    for (let i = 0; i <= segs; i++) {
+      const a = i / segs * Math.PI * 2, x = Math.cos(a) * rad, z = Math.sin(a) * rad;
+      const face = (Math.cos(a) * camDir.x + Math.sin(a) * camDir.y);
+      const top = (hh * (.55 + .45 * (noise.noise(Math.cos(a) * 2.2 + bi * 7, Math.sin(a) * 2.2) * .5 + .5)) + noise.noise(a * 6, bi) * 1.6) * (1 - .6 * smooth(.2, .9, face));
+      vs.push(x, -2, z, x, Math.max(1, top), z);
+      if (i < segs) { const b = i * 2; idx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2); }
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(vs, 3)); g.setIndex(idx);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: c, fog: false, side: THREE.DoubleSide }));
+    m.position.set(center.x, WATER_Y, center.z); m.userData = { base: new THREE.Color(c), k: mixK }; m.renderOrder = -5; scene.add(m); mountainBands.push(m);
+  });
+
+  // 雲：三種外形 × instanced
+  const cloudGeos = [0, 1, 2].map(v => { const r3 = mulberry32(300 + v); const parts = []; const n = 4 + v; for (let k = 0; k < n; k++) parts.push(new THREE.IcosahedronGeometry(.9 + r3() * .8, 1).translate((k - n / 2) * 1.1 + r3() * .4, r3() * .5, (r3() - .5) * 1.2)); return BGU.mergeGeometries(parts); });
+  const cloudMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, flatShading: true, emissive: '#ffffff', emissiveIntensity: .08 });
+  const cms = cloudGeos.map(g => { const m = new THREE.InstancedMesh(g, cloudMat, 4); m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; scene.add(m); return m; });
+  for (let i = 0; i < 12; i++) clouds.push({ mesh: cms[i % 3], idx: Math.floor(i / 3), x: center.x + rng.r(-70, 70), y: rng.r(15, 23), z: center.z + rng.r(-60, 20), s: rng.r(.9, 1.7), v: rng.r(.25, .55) });
+  updateClouds(0);
+
+  // 帆船
+  const hullGeo = new THREE.BoxGeometry(.9, .18, .32).translate(0, .05, 0), sailGeo = GEO.prism;
+  for (let k = 0; k < 4; k++) {
+    const g = new THREE.Group();
+    const hull = new THREE.Mesh(hullGeo, new THREE.MeshStandardMaterial({ color: k % 2 ? C.wood : '#fbf5ee', roughness: .8 }));
+    const sail = new THREE.Mesh(sailGeo, new THREE.MeshStandardMaterial({ color: k % 2 ? C.cream : C.coral, roughness: .8 }));
+    sail.scale.set(.5, .7, .04); sail.position.set(.05, .5, 0);
+    g.add(hull, sail); scene.add(g);
+    boats.push({ g, rad: rng.r(11.5, 19), a: rng.f() * 6.28, v: rng.r(.012, .025) * (k % 2 ? 1 : -1), bob: rng.f() * 6 });
+  }
+  updateBoats(0);
+}
+function updateClouds(dt) {
+  const d = new THREE.Object3D();
+  clouds.forEach(c => { c.x += c.v * dt; if (c.x > center.x + 75) c.x = center.x - 75; d.position.set(c.x, c.y, c.z); d.scale.set(c.s, c.s * .55, c.s); d.updateMatrix(); c.mesh.setMatrixAt(c.idx, d.matrix); c.mesh.instanceMatrix.needsUpdate = true; });
+}
+function updateBoats(dt) {
+  boats.forEach(b => { b.a += b.v * dt; const x = center.x + Math.cos(b.a) * b.rad, z = center.z + Math.sin(b.a) * b.rad * .8; b.g.position.set(x, WATER_Y + Math.sin(S.time * 1.4 + b.bob) * .02, z); b.g.rotation.y = -b.a + (b.v > 0 ? -Math.PI / 2 : Math.PI / 2); });
+}
+
+// ====================================================================
+// 日夜
+// ====================================================================
+const KF = [
+  [0, '1e2c58', '3f4f80', 'b4c2ff', 1.15, '94a2d8', '64566a', 1.85, 1, '5a88b2'],
+  [300, '26365f', '4c5688', 'b8c4ff', 1.0, '96a4da', '66586c', 1.85, 1, '5c8ab4'],
+  [360, '7f8fc4', 'f6c3a6', 'ffb48a', 1.3, 'f3c6b5', '6b5a5a', 1.1, .55, '8fb7c4'],
+  [450, 'a9d1ea', 'fbe6d3', 'ffe2c4', 2.4, 'eaf2f6', '8a7a68', 1.25, 0, '9fcfd6'],
+  [720, '9fd0ec', 'f4eee3', 'fff1de', 2.9, 'eef6fa', '8f8270', 1.35, 0, 'a9d8db'],
+  [960, 'a6cfe6', 'f8e7d2', 'ffe3c0', 2.5, 'f1efe8', '8a7a66', 1.25, 0, '9fcbd2'],
+  [1065, '8b8fc4', 'f7b98f', 'ff9f6a', 1.8, 'f6d2bc', '7d6660', 1.2, .3, '93a9bd'],
+  [1140, '5a5e9e', 'd99aa6', 'ff9a7a', 1.3, 'c0b2e0', '655868', 1.35, .75, '6a7cab'],
+  [1260, '22325f', '445488', 'c0ccff', 1.2, '98a8dc', '685a6e', 1.9, 1, '5a88b2'],
+  [1440, '1e2c58', '3f4f80', 'b4c2ff', 1.15, '94a2d8', '64566a', 1.85, 1, '5a88b2']
+].map(r => ({ m: r[0], top: new_c(r[1]), hor: new_c(r[2]), sun: new_c(r[3]), sunI: r[4], hs: new_c(r[5]), hg: new_c(r[6]), hI: r[7], night: r[8], water: new_c(r[9]) }));
+function new_c(h) { return { hex: '#' + h }; }
+let KFC = null, NIGHT = 0;
+function applyTime(min) {
+  if (!KFC) KFC = KF.map(k => ({ ...k, top: new THREE.Color(k.top.hex), hor: new THREE.Color(k.hor.hex), sun: new THREE.Color(k.sun.hex), hs: new THREE.Color(k.hs.hex), hg: new THREE.Color(k.hg.hex), water: new THREE.Color(k.water.hex) }));
+  min = ((min % 1440) + 1440) % 1440;
+  let i = 0; while (i < KFC.length - 2 && KFC[i + 1].m <= min) i++;
+  const a = KFC[i], b = KFC[i + 1], t = (min - a.m) / (b.m - a.m);
+  const L = (k) => a[k].clone().lerp(b[k], t);
+  const hor = L('hor');
+  skyMat.uniforms.uTop.value.copy(L('top')); skyMat.uniforms.uHorizon.value.copy(hor); skyMat.uniforms.uSun.value.copy(L('sun'));
+  scene.fog.color.copy(hor);
+  sun.color.copy(L('sun')); sun.intensity = lerp(a.sunI, b.sunI, t);
+  hemi.color.copy(L('hs')); hemi.groundColor.copy(L('hg')); hemi.intensity = lerp(a.hI, b.hI, t);
+  NIGHT = lerp(a.night, b.night, t);
+  const w = L('water');
+  waterMats.forEach(m => { m.uniforms.uShallow.value.copy(w); m.uniforms.uDeep.value.copy(w).multiplyScalar(.72); m.uniforms.uNight.value = NIGHT; });
+  skyMat.uniforms.uNight.value = NIGHT;
+  glowMat.emissiveIntensity = NIGHT * 3.2;
+  if (poolMat) poolMat.opacity = NIGHT * .42;
+  mountainBands.forEach(m => m.material.color.copy(m.userData.base).lerp(hor, m.userData.k).multiplyScalar(1 - NIGHT * .35));
+  // 太陽方位（量化到 10 分鐘）
+  const qm = Math.floor(min / 10) * 10;
+  const tt = clamp((qm - 360) / 720, 0, 1), az = Math.PI * (.15 + .7 * tt), el = .35 + Math.sin(tt * Math.PI) * .75;
+  const dir = new THREE.Vector3(Math.cos(az) * Math.cos(el), Math.sin(el), .55 * Math.cos(el) + .35).normalize();
+  sun.position.copy(center).addScaledVector(dir, 40); skyMat.uniforms.uSunDir.value.copy(dir);
+  // 鐘面
+  if (exchangeClock) { exchangeClock.mh.rotation.z = -(min % 60) / 60 * Math.PI * 2; exchangeClock.hh.rotation.z = -((min / 60) % 12) / 12 * Math.PI * 2; }
+}
+
+// ====================================================================
+// 小人、協作線、badge
+// ====================================================================
+const ROLE_LOOK = {
+  clerk:     { shirt: '#ece4d6', pants: '#3a3434', hair: '#2b2220', acc: [['box', 'body', [0, .155, 0], [.104, .09, .1], C.coral], ['box', 'body', [.022, .175, .052], [.024, .032, .006], C.cream]] },
+  analyst:   { shirt: '#6f7fb5', pants: '#3b3f52', hair: '#3a2a24', acc: [['torus', 'head', [-.026, .283, .068], [.034, .034, .02], C.ink], ['torus', 'head', [.026, .283, .068], [.034, .034, .02], C.ink], ['box', 'armL', [0, -.085, .035], [.07, .05, .008], C.ink, [-1.1, 0, 0]]] },
+  cfo:       { shirt: '#3b4a6b', pants: '#2a2f3d', hair: '#2b2220', acc: [['box', 'body', [0, .172, .049], [.016, .055, .006], C.coral], ['box', 'armR', [0, -.11, 0], [.026, .065, .085], '#7a4a32']] },
+  ir:        { shirt: '#f2b5c6', pants: '#4a4048', hair: '#5a3a2a', acc: [['box', 'armL', [0, -.075, .035], [.065, .085, .014], C.coral, [-.9, 0, 0]]] },
+  esg:       { shirt: '#9cc27a', pants: '#4a5a40', hair: '#3a2a24', acc: [['dome', 'head', [0, .288, 0], [.158, .13, .158], C.green], ['box', 'head', [0, .29, .07], [.12, .012, .04], C.green]] },
+  settle:    { shirt: '#3e7c8c', pants: '#2f3b40', hair: '#2b2220', acc: [['box', 'armR', [0, -.11, .01], [.075, .07, .07], C.metal]] },
+  engineer:  { shirt: '#58a6a6', pants: '#33383d', hair: '#1f1a18', acc: [['torus', 'head', [0, .29, 0], [.17, .17, .07], C.ink], ['box', 'armL', [0, -.085, .04], [.085, .01, .065], '#cfd3d6', [-1.2, 0, 0]]] },
+  founder:   { shirt: '#db6a41', pants: '#3a3434', hair: '#2b2220', acc: [['dome', 'body', [0, .225, -.035], [.11, .09, .09], '#c95a34'], ['box', 'body', [0, .15, .05], [.05, .035, .006], '#c95a34']] },
+  retiree:   { shirt: '#c5b5a7', pants: '#5a5048', hair: '#d8d4ce', acc: [['cyl', 'armR', [0, -.12, .02], [.013, .2, .013], C.wood]] },
+  student:   { shirt: '#fff8f4', pants: '#3e4a6b', hair: '#2b2220', acc: [['dome', 'head', [0, .3, 0], [.152, .085, .152], C.yellow], ['box', 'head', [0, .3, .07], [.1, .01, .05], C.yellow]] },
+  volunteer: { shirt: '#fcea8b', pants: '#4a4040', hair: '#3a2a24', acc: [['cyl', 'armL', [0, -.025, 0], [.034, .022, .034], C.coral]] },
+  foreigner: { shirt: '#86a8a6', pants: '#3a3f44', hair: '#c49a5a', acc: [['box', 'body', [.1, .065, -.03], [.05, .11, .13], C.blue], ['box', 'body', [.1, .135, -.03], [.012, .03, .04], C.ink]] }
+};
+const SKINS = ['#f3d2b5', '#e8bf9c', '#d9a77f', '#f6dcc4'];
+let WALKERS = [], PEOPLE = null, FLOWLINES = [], BADGE_TEX = {}, LEADS = {};
+
+function iconTexture(kind) {
+  return canvasTex(128, 128, (g) => {
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 58, 0, 7); g.fill();
+    g.strokeStyle = C.coral; g.lineWidth = 9; g.beginPath(); g.arc(64, 64, 54, 0, 7); g.stroke();
+    g.strokeStyle = C.ink; g.fillStyle = C.ink; g.lineWidth = 6; g.lineCap = g.lineJoin = 'round';
+    const L = (pts) => { g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); };
+    switch (kind) {
+      case 'doc': L([[44, 32], [74, 32], [86, 44], [86, 96], [44, 96], [44, 32]]); L([[54, 58], [76, 58]]); L([[54, 72], [76, 72]]); L([[54, 84], [68, 84]]); break;
+      case 'leaf': g.beginPath(); g.moveTo(40, 90); g.quadraticCurveTo(38, 38, 90, 36); g.quadraticCurveTo(92, 88, 40, 90); g.stroke(); L([[42, 88], [74, 54]]); break;
+      case 'receipt': L([[44, 30], [84, 30], [84, 98], [76, 92], [68, 98], [60, 92], [52, 98], [44, 92], [44, 30]]); L([[54, 50], [74, 50]]); L([[54, 64], [74, 64]]); L([[54, 78], [66, 78]]); break;
+      case 'list': [44, 64, 84].forEach(y => { g.beginPath(); g.arc(42, y, 4, 0, 7); g.fill(); L([[54, y], [88, y]]); }); break;
+      case 'form': L([[42, 30], [86, 30], [86, 98], [42, 98], [42, 30]]); L([[50, 46], [78, 46]]); L([[50, 82], [60, 90], [80, 68]]); break;
+      case 'slides': L([[34, 38], [94, 38], [94, 80], [34, 80], [34, 38]]); L([[64, 80], [64, 96]]); L([[50, 96], [78, 96]]); L([[46, 70], [60, 58], [70, 64], [84, 48]]); break;
+      case 'shield': L([[64, 30], [90, 40], [88, 70], [64, 96], [40, 70], [38, 40], [64, 30]]); L([[64, 48], [64, 70]]); g.beginPath(); g.arc(64, 80, 3.5, 0, 7); g.fill(); break;
+      case 'drive': L([[36, 44], [92, 44], [92, 84], [36, 84], [36, 44]]); L([[36, 68], [92, 68]]); g.beginPath(); g.arc(80, 76, 4, 0, 7); g.fill(); break;
+      case 'globe': g.beginPath(); g.arc(64, 64, 30, 0, 7); g.stroke(); g.beginPath(); g.ellipse(64, 64, 13, 30, 0, 0, 7); g.stroke(); L([[34, 64], [94, 64]]); break;
+      default: L([[40, 36], [64, 44], [88, 36], [88, 90], [64, 98], [40, 90], [40, 36]]); L([[64, 44], [64, 98]]);
+    }
+  }, false);
+}
+
+function buildPeopleAndFlows() {
+  const rng = rngFor(31337);
+  const camFrontK = 3; // 島前緣（+z）頂點
+  DATA.flows.forEach((f, fi) => {
+    const a = ISLAND[f.from].idx, b = ISLAND[f.to].idx;
+    const pts = dijkstra(nodeId(a, camFrontK), nodeId(b, camFrontK));
+    const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+    const path = { pts, cum, len: cum[cum.length - 1] };
+    f.path = path;
+    // 協作線
+    const lifted = pts.map(p => p.clone().add(new THREE.Vector3(0, .05, 0)));
+    const curve = new THREE.CatmullRomCurve3(lifted, false, 'centripetal', .2);
+    const mat = new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false,
+      uniforms: { uTime: { value: 0 }, uLen: { value: path.len }, uStyle: { value: f.status === 'official' ? 0 : f.status === 'thematic' ? 1 : 2 }, uColor: { value: new THREE.Color(C.coral) }, uOpacity: { value: .82 } },
+      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+      fragmentShader: `uniform float uTime; uniform float uLen; uniform float uStyle; uniform vec3 uColor; uniform float uOpacity; varying vec2 vUv;
+        void main(){ float u = vUv.x*uLen*5. - uTime*1.4; float f = fract(u);
+          if (uStyle > .5 && uStyle < 1.5 && f > .6) discard;
+          if (uStyle > 1.5 && f > .3) discard;
+          vec3 c = uColor*(.86 + .14*smoothstep(0., 1., f));
+          gl_FragColor = vec4(c, uOpacity);
+          #include <colorspace_fragment>
+        }`
+    });
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(40, Math.round(path.len * 14)), .035, 6, false), mat);
+    tube.visible = false; tube.userData.flow = f.id; tube.renderOrder = 3; scene.add(tube);
+    FLOWLINES.push(tube);
+    // 小人
+    if (!BADGE_TEX[f.icon]) BADGE_TEX[f.icon] = iconTexture(f.icon);
+    const n = rng.i(4, Math.min(14, 4 + Math.round(path.len / 1.6)));
+    for (let k = 0; k < n; k++) {
+      const role = f.roles[k % f.roles.length];
+      const bike = k > 0 && rng.f() < .15;
+      WALKERS.push({
+        flow: f, role, bike, lead: k === 0, s: k === 0 ? 0 : rng.f() * path.len, dir: rng.f() < .5 ? 1 : -1, pause: k === 0 ? .5 : 0,
+        speed: bike ? rng.r(.62, .7) : rng.r(.32, .4), phase: rng.f(), side: (rng.f() < .5 ? 1 : -1) * rng.r(.03, .07),
+        skin: rng.pick(SKINS), pos: new THREE.Vector3(), yaw: 0
+      });
+    }
+  });
+  WALKERS.forEach(w => { if (w.lead) w.dir = 1; });
+  buildPeopleMeshes();
+}
+
+function buildPeopleMeshes() {
+  const N = WALKERS.length;
+  const mat = new THREE.MeshStandardMaterial({ roughness: .78, metalness: 0 });
+  const mk = (geo, count, shadow = true) => { const m = new THREE.InstancedMesh(geo, mat, count); m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.castShadow = shadow; m.frustumCulled = false; scene.add(m); return m; };
+  const body = mk(new THREE.CapsuleGeometry(.048, .04, 4, 10), N);
+  const head = mk(new THREE.SphereGeometry(.072, 16, 12), N);
+  const hair = mk(new THREE.SphereGeometry(.075, 16, 8, 0, Math.PI * 2, 0, Math.PI * .55), N);
+  const legs = mk(GEO.box, N * 2), arms = mk(GEO.box, N * 2);
+  const eyes = mk(new THREE.SphereGeometry(.011, 6, 4), N * 2, false);
+  const shadowMat = new THREE.MeshBasicMaterial({ color: '#3a2a20', transparent: true, opacity: .22, depthWrite: false });
+  const shadows = new THREE.InstancedMesh(new THREE.CircleGeometry(.085, 16).rotateX(-Math.PI / 2), shadowMat, N); shadows.frustumCulled = false; shadows.renderOrder = 1; scene.add(shadows);
+  // 配件：依角色建立零件清單
+  const accCount = { box: 0, dome: 0, cyl: 0, torus: 0 };
+  WALKERS.forEach(w => {
+    const look = ROLE_LOOK[w.role];
+    w.acc = look.acc.map(([kind, attach, p, s, c, rot]) => ({ kind, attach, m: new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(...(rot || [0, 0, 0]))), new THREE.Vector3(...s)), c, idx: accCount[kind]++ }));
+    if (w.bike) {
+      const bk = [['torus', 'bike', [0, .05, .085], [.1, .1, .06], C.ink, [0, Math.PI / 2, 0]], ['torus', 'bike', [0, .05, -.085], [.1, .1, .06], C.ink, [0, Math.PI / 2, 0]],
+        ['box', 'bike', [0, .09, 0], [.015, .015, .17], C.coral], ['box', 'bike', [0, .1, -.04], [.04, .015, .05], C.ink], ['box', 'bike', [0, .14, .07], [.1, .012, .012], C.ink]];
+      bk.forEach(([kind, attach, p, s, c, rot]) => w.acc.push({ kind, attach, m: new THREE.Matrix4().compose(new THREE.Vector3(...p), new THREE.Quaternion().setFromEuler(new THREE.Euler(...(rot || [0, 0, 0]))), new THREE.Vector3(...s)), c, idx: accCount[kind]++ }));
+    }
+  });
+  const acc = {}; for (const k in accCount) acc[k] = mk(GEO[k], Math.max(1, accCount[k]));
+  const col = new THREE.Color();
+  WALKERS.forEach((w, i) => {
+    const look = ROLE_LOOK[w.role];
+    body.setColorAt(i, col.set(look.shirt)); head.setColorAt(i, col.set(w.skin)); hair.setColorAt(i, col.set(look.hair));
+    legs.setColorAt(i * 2, col.set(look.pants)); legs.setColorAt(i * 2 + 1, col);
+    arms.setColorAt(i * 2, col.set(look.shirt)); arms.setColorAt(i * 2 + 1, col);
+    eyes.setColorAt(i * 2, col.set(C.ink)); eyes.setColorAt(i * 2 + 1, col);
+    w.acc.forEach(a => acc[a.kind].setColorAt(a.idx, col.set(a.c)));
+    // badge 與名牌
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: BADGE_TEX[w.flow.icon], depthWrite: false }));
+    sp.scale.set(.13, .13, 1); sp.visible = false; sp.userData.walker = i; scene.add(sp); w.badge = sp;
+    const div = document.createElement('div'); div.className = 'bubble'; w.bubbleEl = div;
+    const ob = new CSS2DObject(div); ob.visible = false; scene.add(ob); w.bubble = ob;
+  });
+  [body, head, hair, legs, arms, eyes, ...Object.values(acc)].forEach(m => { if (m.instanceColor) m.instanceColor.needsUpdate = true; });
+  body.userData.people = head.userData.people = true;
+  PEOPLE = { body, head, hair, legs, arms, eyes, shadows, acc, all: [body, head, hair, legs, arms, eyes, shadows, ...Object.values(acc)] };
+  updateBubbleText();
+}
+function updateBubbleText() { WALKERS.forEach(w => { w.bubbleEl.textContent = tr('正在搬 ' + w.flow.cargo, 'Carrying ' + w.flow.cargoEn); }); }
+
+// 這些暫存物件在 three 載入後才建立（initApp）
+let _root, _piv, _part, _tmpM, _v, _v2, _qq, _ee, CORAL, YELLOW, HOME_DIR, ray, ndc;
+function initApp() {
+  _root = new THREE.Matrix4(); _piv = new THREE.Matrix4(); _part = new THREE.Matrix4(); _tmpM = new THREE.Matrix4();
+  _v = new THREE.Vector3(); _v2 = new THREE.Vector3(); _qq = new THREE.Quaternion(); _ee = new THREE.Euler();
+  CORAL = new THREE.Color(C.coral); YELLOW = new THREE.Color(C.yellow);
+  HOME_DIR = new THREE.Vector3(.24, .33, .87).normalize();
+  ray = new THREE.Raycaster(); ndc = new THREE.Vector2();
+}
+function samplePath(path, s, out, tan) {
+  const { pts, cum } = path; s = clamp(s, 0, path.len);
+  let i = 1; while (i < cum.length - 1 && cum[i] < s) i++;
+  const t = (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]);
+  out.lerpVectors(pts[i - 1], pts[i], t); tan.subVectors(pts[i], pts[i - 1]).normalize();
+}
+function composeTo(out, parent, x, y, z, rx, ry, rz, sx, sy, sz) {
+  _ee.set(rx, ry, rz); _qq.setFromEuler(_ee); _v.set(x, y, z); _v2.set(sx, sy, sz);
+  out.compose(_v, _qq, _v2); return out.premultiply(parent);
+}
+function updateWalkers(dt, animate) {
+  if (!PEOPLE) return;
+  const camD = camera.position.distanceTo(controls.target);
+  const scl = clamp(camD / 20, 1, 1.45);
+  const tan = new THREE.Vector3();
+  const showBadge = S.walkers && camD < 16, showNames = S.walkers && S.names;
+  WALKERS.forEach((w, i) => {
+    const L = w.flow.path.len;
+    if (animate) {
+      if (w.pause > 0) {
+        w.pause -= dt;
+        if (w.pause <= 0 && w.lead && w.s <= 0) logEvent('depart', w);
+      } else {
+        w.s += w.dir * w.speed * dt;
+        if (w.s >= L) { w.s = L; w.dir = -1; w.pause = 1.4; if (w.lead) logEvent('handoff', w); }
+        else if (w.s <= 0) { w.s = 0; w.dir = 1; w.pause = 1.4; if (w.lead) logEvent('arrive', w); }
+      }
+    }
+    samplePath(w.flow.path, w.s, w.pos, tan);
+    const sgn = w.dir;
+    w.pos.x += -tan.z * w.side * sgn; w.pos.z += tan.x * w.side * sgn;
+    if (w.pause <= 0) w.yaw = Math.atan2(tan.x * sgn, tan.z * sgn);
+    const moving = w.pause <= 0 && !S.paused && !S.reduced;
+    const ph = S.time * 9 + w.phase * 20;
+    const sw = moving ? Math.sin(ph) : 0;
+    const bob = moving && !w.bike ? Math.abs(Math.sin(ph)) * .012 : 0;
+    const lift = w.bike ? .07 : 0;
+    _ee.set(0, w.yaw, 0); _qq.setFromEuler(_ee);
+    const s = S.walkers ? scl : 0.00001;
+    _root.compose(w.pos, _qq, _v2.set(s, s, s));
+    const P_ = PEOPLE;
+    // 身體、頭
+    composeTo(_part, _root, 0, .155 + bob + lift, 0, 0, 0, 0, 1, 1, 1); P_.body.setMatrixAt(i, _part);
+    composeTo(_part, _root, 0, .278 + bob + lift, 0, 0, 0, 0, 1, 1, 1); P_.head.setMatrixAt(i, _part);
+    composeTo(_part, _root, 0, .282 + bob + lift, -.006, -.15, 0, 0, 1, 1, 1); P_.hair.setMatrixAt(i, _part);
+    for (let e = 0; e < 2; e++) { composeTo(_part, _root, e ? .026 : -.026, .282 + bob + lift, .066, 0, 0, 0, 1, 1, 1); P_.eyes.setMatrixAt(i * 2 + e, _part); }
+    // 腿
+    for (let e = 0; e < 2; e++) {
+      const legSw = w.bike ? (e ? .9 : .4) + (moving ? Math.sin(ph * .7 + e * Math.PI) * .3 : 0) : (e ? sw : -sw) * .55;
+      composeTo(_piv, _root, e ? .024 : -.024, .09 + bob + lift, 0, -legSw * (w.bike ? 1 : 1), 0, 0, 1, 1, 1);
+      composeTo(_part, _piv, 0, -.045, 0, 0, 0, 0, .034, .09, .04); P_.legs.setMatrixAt(i * 2 + e, _part);
+    }
+    // 手臂與手上配件
+    const armM = [null, null];
+    for (let e = 0; e < 2; e++) {
+      const aSw = w.bike ? -.9 : (e ? -sw : sw) * .45;
+      composeTo(_piv, _root, e ? .064 : -.064, .2 + bob + lift, 0, aSw, 0, e ? -.08 : .08, 1, 1, 1);
+      armM[e] = _piv.clone();
+      composeTo(_part, _piv, 0, -.04, 0, 0, 0, 0, .026, .085, .03); P_.arms.setMatrixAt(i * 2 + e, _part);
+    }
+    w.acc.forEach(a => {
+      let parent;
+      if (a.attach === 'armR') parent = armM[0]; else if (a.attach === 'armL') parent = armM[1];
+      else if (a.attach === 'bike') parent = _root;
+      else { parent = _tmpM.copy(_root).multiply(_part.makeTranslation(0, bob + lift, 0)); }
+      _part.multiplyMatrices(parent, a.m); P_.acc[a.kind].setMatrixAt(a.idx, _part);
+    });
+    _part.compose(_v.set(w.pos.x, w.pos.y - .006, w.pos.z), _qq.identity(), _v2.set(s, 1, s)); P_.shadows.setMatrixAt(i, _part);
+    // badge
+    w.badge.visible = showBadge;
+    if (showBadge) { w.badge.position.set(w.pos.x, w.pos.y + (.43 + lift) * scl, w.pos.z); w.badge.scale.setScalar(.13 * scl); }
+    const near = showNames && camera.position.distanceTo(w.pos) < 14;
+    w.bubble.visible = near; if (near) w.bubble.position.set(w.pos.x, w.pos.y + .38 * scl, w.pos.z);
+  });
+  PEOPLE.all.forEach(m => m.instanceMatrix.needsUpdate = true);
+}
+
+// ====================================================================
+// 日誌
+// ====================================================================
+const LOG = [];
+function hhmm(min) { min = ((Math.floor(min) % 1440) + 1440) % 1440; return String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0'); }
+function logEvent(type, w) { LOG.unshift({ type, flow: w.flow.id, role: w.role, t: hhmm(S.min) }); if (LOG.length > 60) LOG.pop(); if (S.log) renderLog(); }
+function logText(e) {
+  const f = FLOW[e.flow], role = DATA.roles[e.role], from = ISLAND[f.from], to = ISLAND[f.to];
+  const r = nm(role), cg = tr(f.cargo, f.cargoEn);
+  if (e.type === 'depart') return tr(`${r}帶著${cg}從${from.name}島出發`, `${r} leaves ${from.en} with the ${cg}`);
+  if (e.type === 'handoff') return tr(`${r}把${cg}交給${to.name}島`, `${r} hands the ${cg} to ${to.en}`);
+  return tr(`${r}回到${from.name}島`, `${r} is back at ${from.en}`);
+}
+
+// ====================================================================
+// 標籤
+// ====================================================================
+let ISLAND_LABELS = [], PINS = [], PIN_LINES = [];
+function buildLabels() {
+  ISL.forEach(is => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ilabel';
+    b.innerHTML = `<span class="num">${String(is.no).padStart(2, '0')}</span><span class="txt"></span>`;
+    b.addEventListener('click', e => { e.stopPropagation(); selectIsland(is.id); });
+    const o = new CSS2DObject(b); o.position.set(is.pos.x, TOP - .02, is.pos.z + R * .9); scene.add(o);
+    ISLAND_LABELS.push({ o, el: b, is, state: 'full', kind: 'island' });
+    is.items.forEach((it, k) => {
+      const p = document.createElement('button'); p.type = 'button'; p.className = 'pin'; p.textContent = CIRCLED[k];
+      p.addEventListener('click', e => { e.stopPropagation(); selectItem(it.id); });
+      const top = ITEM_TOPS[it.id]; const po = new CSS2DObject(p); po.position.set(top.x, top.y + .34, top.z); po.visible = false; scene.add(po);
+      PINS.push({ o: po, el: p, it, state: 'full', kind: 'pin' });
+      const g = new THREE.BufferGeometry().setFromPoints([top.clone().add(new THREE.Vector3(0, .02, 0)), new THREE.Vector3(top.x, top.y + .26, top.z)]);
+      const ln = new THREE.Line(g, new THREE.LineBasicMaterial({ color: C.coral, depthTest: false, transparent: true })); ln.renderOrder = 20; ln.visible = false; scene.add(ln);
+      PIN_LINES.push({ ln, it });
+    });
+  });
+  updateLabelText();
+}
+function updateLabelText() {
+  ISLAND_LABELS.forEach(L => { L.el.querySelector('.txt').textContent = nm(L.is); L.el.setAttribute('aria-label', nm(L.is)); L.wFull = 0; });
+  PINS.forEach(p => p.el.setAttribute('aria-label', nm(p.it)));
+}
+let PANEL_RECTS = [], panelsDirty = true;
+function panelRects() {
+  if (!panelsDirty) return PANEL_RECTS;
+  panelsDirty = false;
+  PANEL_RECTS = ['brand', 'tools', 'card', 'side', 'hud', 'log', 'legend', 'hudBtn'].map(id => document.getElementById(id)).filter(el => el && !el.hidden && el.offsetParent !== null && getComputedStyle(el).display !== 'none').map(el => el.getBoundingClientRect());
+  return PANEL_RECTS;
+}
+const RANK = { full: 0, num: 1, hide: 2 };
+function layoutLabels() {
+  const w = glHost.clientWidth, h = glHost.clientHeight;
+  const placed = panelRects().map(r => ({ l: r.left, r: r.right, t: r.top, b: r.bottom }));
+  const hit = (a) => a.l < 4 || a.r > w - 4 || a.t < 4 || a.b > h - 4 || placed.some(b => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t);
+  const sel = S.sel;
+  const selIsland = sel && (sel.kind === 'island' ? sel.id : sel.kind === 'item' ? ITEM[sel.id].island.id : null);
+  const list = [];
+  PINS.forEach(p => { if (p.o.visible) list.push(p); });
+  ISLAND_LABELS.forEach(L => list.push(L));
+  list.forEach(L => { L.o.getWorldPosition(_v).project(camera); L.sx = (_v.x * .5 + .5) * w; L.sy = (-_v.y * .5 + .5) * h; L.depth = _v.z; });
+  list.sort((a, b) => (b.kind === 'pin') - (a.kind === 'pin') || ((b.is && b.is.id === selIsland) - (a.is && a.is.id === selIsland)) || a.depth - b.depth);
+  for (const L of list) {
+    if (L.kind === 'island' && !L.wFull) { const n = L.el.querySelector('.num'), t = L.el.querySelector('.txt'); L.wNum = n.offsetWidth + 14; L.wFull = L.wNum + t.scrollWidth + 8; L.h = L.el.offsetHeight || 28; }
+    const opts = L.kind === 'pin' ? [['full', 26]] : [['full', L.wFull], ['num', L.wNum]];
+    const hh = L.kind === 'pin' ? 26 : L.h;
+    let st = 'hide';
+    if (L.depth < 1) for (const [cand, ww] of opts) {
+      const pad = RANK[cand] < RANK[L.state] ? 8 : 0;
+      const r = { l: L.sx - ww / 2 - pad, r: L.sx + ww / 2 + pad, t: L.sy - hh / 2 - pad, b: L.sy + hh / 2 + pad };
+      if (!hit(r)) { st = cand; placed.push({ l: L.sx - ww / 2, r: L.sx + ww / 2, t: L.sy - hh / 2, b: L.sy + hh / 2 }); break; }
+    }
+    if (st !== L.state) { L.el.classList.toggle('c-num', st === 'num'); L.el.classList.toggle('c-hide', st === 'hide'); L.state = st; }
+  }
+}
+
+// ====================================================================
+// 高亮
+// ====================================================================
+function currentSeg() { const dc = DATA.dayCycle; let s = dc.length - 1; for (let i = 0; i < dc.length; i++) if (S.min >= dc[i].min) s = i; return s; }
+function relatedIslands() { const sel = S.sel; if (!sel) return new Set(); if (sel.kind === 'island') return new Set([sel.id]); if (sel.kind === 'item') return new Set([ITEM[sel.id].island.id]); const f = sel.kind === 'flow' ? FLOW[sel.id] : WALKERS[sel.id].flow; return new Set([f.from, f.to]); }
+function recolor() {
+  const sel = S.sel, selItems = new Set();
+  if (sel && sel.kind === 'island') ISLAND[sel.id].items.forEach(it => selItems.add(it.id));
+  if (sel && sel.kind === 'item') selItems.add(sel.id);
+  const lit = new Set(DATA.dayCycle[S.seg] ? DATA.dayCycle[S.seg].items : []);
+  const col = new THREE.Color();
+  for (const [owner, list] of ownerIndex) {
+    if (!owner.startsWith('item:')) continue;
+    const id = owner.slice(5);
+    const mode = selItems.has(id) ? 1 : lit.has(id) ? 2 : 0;
+    for (const [mesh, i] of list) {
+      col.copy(mesh.userData.base[i]); if (mode === 1) col.lerp(CORAL, .22); else if (mode === 2) col.lerp(YELLOW, .22);
+      mesh.setColorAt(i, col);
+    }
+  }
+  kitMeshes.forEach(m => { if (m.instanceColor) m.instanceColor.needsUpdate = true; });
+  // 標籤狀態
+  const rel = relatedIslands();
+  const litIsl = new Set([...lit].map(id => ITEM[id] && ITEM[id].island.id));
+  ISLAND_LABELS.forEach(L => { L.el.classList.toggle('sel', rel.has(L.is.id) && sel && (sel.kind === 'island' || sel.kind === 'item')); L.el.classList.toggle('dim', !!sel && !rel.has(L.is.id)); L.el.classList.toggle('lit', litIsl.has(L.is.id)); });
+  const pinIsland = sel && (sel.kind === 'island' ? sel.id : sel.kind === 'item' ? ITEM[sel.id].island.id : null);
+  PINS.forEach(p => { p.o.visible = p.it.island.id === pinIsland; p.el.classList.toggle('sel', sel && sel.kind === 'item' && sel.id === p.it.id); });
+  PIN_LINES.forEach(p => p.ln.visible = p.it.island.id === pinIsland);
+  S.dirty = true;
+}
+function relatedFlows() {
+  const sel = S.sel, out = new Set(); if (!sel) return out;
+  if (sel.kind === 'flow') out.add(sel.id);
+  else if (sel.kind === 'walker') out.add(WALKERS[sel.id].flow.id);
+  else { const isl = sel.kind === 'island' ? sel.id : ITEM[sel.id].island.id; DATA.flows.forEach(f => { if (f.from === isl || f.to === isl) out.add(f.id); }); }
+  return out;
+}
+function updateFlowVisibility() {
+  const rel = relatedFlows(); let any = false;
+  FLOWLINES.forEach(t => { t.visible = S.flows || rel.has(t.userData.flow); t.material.uniforms.uOpacity.value = (rel.size && !rel.has(t.userData.flow)) ? .35 : .82; any = any || t.visible; });
+  document.getElementById('legend').hidden = !any; panelsDirty = true; S.dirty = true;
+}
+
+// ====================================================================
+// 相機
+// ====================================================================
+const DEG = Math.PI / 180;
+function homeDistance() { const a = glHost.clientWidth / Math.max(1, glHost.clientHeight); return a > 1.25 ? 28.5 : a > .8 ? 38 : 56; }
+// 桌面版左側有卡片時，把主角移到卡片與清單之間的空白處（上限 1.5）
+function viewShift(dist) {
+  if (isMobile() || $('card').hidden) return 0;
+  const W = glHost.clientWidth, H = glHost.clientHeight;
+  const l = $('card').getBoundingClientRect().right, r = S.sideOpen ? $('side').getBoundingClientRect().left : W;
+  const px = (l + r) / 2 - W / 2, perPx = 2 * Math.tan(camera.fov * DEG / 2) * dist / H;
+  return clamp(px * perPx, -1.5, 1.5);
+}
+function flyTo(target, pos) {
+  const sh = viewShift(target.distanceTo(pos));
+  if (sh) {
+    const right = new THREE.Vector3().subVectors(target, pos).cross(camera.up).normalize();
+    target = target.clone().addScaledVector(right, -sh); pos = pos.clone().addScaledVector(right, -sh);
+  }
+  if (S.reduced) { camera.position.copy(pos); controls.target.copy(target); controls.update(); S.fly = null; S.dirty = true; return; }
+  S.fly = { t: 0, p0: camera.position.clone(), q0: controls.target.clone(), p1: pos, q1: target };
+  controls.enabled = false;
+}
+const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+function stepFly(dt) {
+  const f = S.fly; if (!f) return;
+  f.t = Math.min(1, f.t + dt / .8); const e = easeIO(f.t);
+  camera.position.lerpVectors(f.p0, f.p1, e); controls.target.lerpVectors(f.q0, f.q1, e);
+  if (f.t >= 1) { S.fly = null; controls.enabled = true; }
+  S.dirty = true;
+}
+function setBird(on) {
+  S.bird = on; controls.minPolarAngle = on ? 0 : 25 * DEG; pressToggle('bird', on);
+  if (on) { S.mode = 'bird'; flyTo(center.clone(), center.clone().add(new THREE.Vector3(.01, 42, 6))); }
+}
+function goHome() {
+  if (S.bird) setBird(false);
+  S.mode = 'home';
+  flyTo(center.clone(), center.clone().addScaledVector(HOME_DIR, homeDistance()));
+}
+// 直式螢幕水平視角窄，飛行距離按長寬比拉遠
+const aspectK = () => clamp(1.25 / (glHost.clientWidth / Math.max(1, glHost.clientHeight)), 1, 2.2);
+function flyIsland(id) { const p = ISLAND[id].pos; const t = new THREE.Vector3(p.x, TOP, p.z); flyTo(t, t.clone().add(new THREE.Vector3(2.75, 5.3, 6.2).multiplyScalar(aspectK()))); }
+function flyItem(id) { const t = ITEM_CENTER[id].clone(); flyTo(t, t.clone().add(new THREE.Vector3(1.6, 2.5, 3.2).multiplyScalar(aspectK()))); }
+function flyFlow(f) {
+  const a = ISLAND[f.from].pos, b = ISLAND[f.to].pos, mid = a.clone().add(b).multiplyScalar(.5); mid.y = TOP;
+  const d = a.distanceTo(b); flyTo(mid, mid.clone().add(new THREE.Vector3(2.75, 5.3, 6.2).multiplyScalar(clamp(d / 5, 1, 2.2))));
+}
+
+// ====================================================================
+// 選取
+// ====================================================================
+function select(sel, flyFn) {
+  if (S.bird) setBird(false);
+  S.sel = sel; S.mode = sel.kind;
+  recolor(); updateFlowVisibility(); openCard(); flyFn(); renderSideActive();
+}
+function selectIsland(id) { select({ kind: 'island', id }, () => flyIsland(id)); }
+function selectItem(id) { select({ kind: 'item', id }, () => flyItem(id)); }
+function selectFlow(id) { select({ kind: 'flow', id }, () => flyFlow(FLOW[id])); }
+function selectWalker(i) { const w = WALKERS[i]; select({ kind: 'walker', id: i }, () => { const t = w.pos.clone(); flyTo(t, t.clone().add(new THREE.Vector3(1.2, 1.8, 2.4))); }); }
+function clearSelection() { if (!S.sel) return; S.sel = null; recolor(); updateFlowVisibility(); closeCard(); renderSideActive(); }
+
+// ====================================================================
+// 縮圖（160² 離屏渲染）
+// ====================================================================
+const THUMBS = {}; let thumbR = null, thumbScene = null, thumbCam = null;
+function thumbnail(it) {
+  if (THUMBS[it.id]) return THUMBS[it.id];
+  try {
+    if (!thumbR) {
+      thumbR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      thumbR.setPixelRatio(2); thumbR.setSize(160, 160, false);
+      thumbR.outputColorSpace = THREE.SRGBColorSpace; thumbR.toneMapping = THREE.ACESFilmicToneMapping;
+      thumbScene = new THREE.Scene();
+      thumbScene.add(new THREE.HemisphereLight(0xeef6fa, 0x8f8270, 1.5));
+      const d = new THREE.DirectionalLight(0xfff1de, 2.6); d.position.set(2, 4, 3); thumbScene.add(d);
+      thumbCam = new THREE.PerspectiveCamera(30, 1, .1, 50);
+    }
+    const g = new THREE.Group(); const sink = new MeshSink(g);
+    const prev = SINK; SINK = sink; FRAME.identity(); OWNER = null;
+    (MODELS[it.model] || MODELS.house)(rngFor(5), it);
+    SINK = prev;
+    thumbScene.add(g); g.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3()).length();
+    thumbCam.position.copy(c).add(new THREE.Vector3(1.1, .9, 1.6).normalize().multiplyScalar(size * 1.75)); thumbCam.lookAt(c);
+    thumbR.render(thumbScene, thumbCam);
+    THUMBS[it.id] = thumbR.domElement.toDataURL('image/png');
+    thumbScene.remove(g); sink.mats.forEach(m => m.dispose());
+  } catch (e) { THUMBS[it.id] = ''; }
+  return THUMBS[it.id];
+}
+
+// ====================================================================
+// 介面
+// ====================================================================
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const STATUS = { live: ['已上線', 'Live'], progress: ['推動中', 'In progress'], plan: ['規劃中', 'Planned'] };
+const FSTATUS = { official: ['已實施', 'In force'], thematic: ['推動中', 'In progress'], pending: ['研議／規劃中', 'Under study'] };
+const st = (k) => tr(...STATUS[k]);
+const disclaimer = () => `<p class="disc">${tr('非官方示範，資料以證交所官網公告為準。', 'Unofficial demo. Figures follow TWSE announcements.')} <a href="${tr(DATA.city.site, DATA.city.siteEn)}" target="_blank" rel="noopener">${tr('證交所官網', 'TWSE website')} ↗</a></p>`;
+
+function bigNumbers(it) {
+  const out = [];
+  for (const f of it.facts) {
+    const zh = f.split('|')[0]; if (/待查證|示意/.test(zh)) continue;
+    const txt = factText(f);
+    let m = txt.match(/\d{1,2}:\d{2}\s*[–-]\s*\d{1,2}:\d{2}/) || txt.match(/T\+\d/) || txt.match(/\d+(?:[.,]\d+)?\s*(?:%|秒|seconds?|名|股|share)/) || txt.match(/\b\d{1,2}:\d{2}\b/) || txt.match(/(?:19|20)\d{2}|\d{3}\s*年/);
+    if (m) out.push({ n: m[0].replace(/\s+/g, ''), cap: txt });
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+function openCard() {
+  const card = $('card'), body = $('cardBody'), sel = S.sel; if (!sel) return;
+  let h = '';
+  if (sel.kind === 'island') {
+    const is = ISLAND[sel.id];
+    const flows = DATA.flows.filter(f => f.from === is.id || f.to === is.id);
+    const lit = new Set(DATA.dayCycle[S.seg] ? DATA.dayCycle[S.seg].items : []);
+    h = `<div class="cardhead"><div class="ibadge" style="background:${is.color}">${is.no}</div><div><div class="eyebrow">${tr('政策主題', 'Policy topic')} ${String(is.no).padStart(2, '0')}</div><h2>${esc(nm(is))}</h2></div></div>
+      <p>${esc(tr(is.summary, is.summaryEn))}</p>
+      <div><div class="eyebrow">${tr('細項', 'Items')} · ${is.items.length}</div>
+      <ul class="itemlist">${is.items.map((it, k) => `<li><button class="rowbtn${lit.has(it.id) ? ' lit' : ''}" type="button" data-item="${it.id}"><span class="n">${CIRCLED[k]}</span><span class="t">${esc(nm(it))}</span><span class="status ${it.status}">${st(it.status)}</span></button></li>`).join('')}</ul></div>
+      ${flows.length ? `<div><div class="eyebrow">${tr('協作', 'Links')}</div><div class="chips" style="margin-top:8px">${flows.map(f => `<button class="chip" type="button" data-flow="${f.id}"><i class="swatch ${f.status}"></i>${esc(nm(ISLAND[f.from]))} → ${esc(nm(ISLAND[f.to]))}</button>`).join('')}</div></div>` : ''}
+      ${disclaimer()}`;
+  } else if (sel.kind === 'item') {
+    const it = ITEM[sel.id], is = it.island, nums = bigNumbers(it), src = thumbnail(it);
+    const stepIdx = { live: 0, progress: 1, plan: 2 }[it.status];
+    h = `<div><div class="eyebrow">${tr('細項', 'Item')} ${CIRCLED[it.k]} · <button class="chip cream" type="button" data-island="${is.id}" style="padding:2px 9px;min-height:24px">${esc(nm(is))}</button></div><h2>${esc(nm(it))}</h2></div>
+      ${src ? `<img class="thumb" src="${src}" alt="${esc(nm(it))}" width="160" height="160">` : ''}
+      <p>${esc(tr(it.desc, it.descEn))}</p>
+      ${nums.length ? `<div class="tiles">${nums.map(n => `<div class="tile"><b>${esc(n.n)}</b><span>${esc(n.cap)}</span></div>`).join('')}</div>` : ''}
+      <div><div class="eyebrow">${tr('重點', 'Key facts')}</div><ul class="facts" style="margin-top:8px">${it.facts.map(f => { const t = factText(f); return `<li${/待查證|to be verified/.test(t) ? ' class="tbc"' : ''}>${esc(t)}</li>`; }).join('')}</ul></div>
+      <div><div class="eyebrow" style="margin-bottom:8px">${tr('時程', 'Status')}</div><div class="timeline">${['live', 'progress', 'plan'].map((k, i) => `<div class="${i === stepIdx ? 'on' : ''}">${st(k)}</div>`).join('')}</div></div>
+      <a class="btn linkbtn" href="${esc(it.url)}" target="_blank" rel="noopener">${tr('前往官網', 'Open on TWSE site')} ↗</a>
+      ${disclaimer()}`;
+  } else {
+    const f = sel.kind === 'flow' ? FLOW[sel.id] : WALKERS[sel.id].flow;
+    const w = sel.kind === 'walker' ? WALKERS[sel.id] : null;
+    h = `<div><div class="eyebrow">${w ? tr('搬運中的小人', 'Courier') : tr('協作線', 'Collaboration link')}</div><h2>${w ? esc(nm(DATA.roles[w.role])) : esc(tr(f.cargo, f.cargoEn))}</h2></div>
+      <div class="flowpath"><button class="chip" type="button" data-island="${f.from}">${esc(nm(ISLAND[f.from]))}</button><span aria-hidden="true">→</span><button class="chip" type="button" data-island="${f.to}">${esc(nm(ISLAND[f.to]))}</button></div>
+      <dl class="kv"><dt>${tr('搬運物', 'Carrying')}</dt><dd>${esc(tr(f.cargo, f.cargoEn))}</dd>
+        <dt>${tr('走路的角色', 'Who walks')}</dt><dd>${f.roles.map(r => esc(nm(DATA.roles[r]))).join('、')}</dd>
+        <dt>${tr('制度狀態', 'Status')}</dt><dd><i class="swatch ${f.status}"></i> ${tr(...FSTATUS[f.status])}</dd>
+        ${w ? `<dt>${tr('方向', 'Heading')}</dt><dd>${w.dir > 0 ? esc(tr('前往 ' + ISLAND[f.to].name, 'to ' + ISLAND[f.to].en)) : esc(tr('返回 ' + ISLAND[f.from].name, 'back to ' + ISLAND[f.from].en))}</dd>` : ''}</dl>
+      <p class="disc">${tr('協作線是示意：表達兩個主題之間文件與資訊的流向，不代表正式作業流程。', 'Links are illustrative: they show how documents and information move between topics, not formal procedures.')}</p>
+      ${disclaimer()}`;
+  }
+  body.innerHTML = h; body.scrollTop = 0;
+  const wasHidden = card.hidden; card.hidden = false; panelsDirty = true; S.dirty = true;
+  if (wasHidden && isMobile()) card.style.height = '';
+}
+function closeCard() { $('card').hidden = true; panelsDirty = true; S.dirty = true; }
+
+function renderSide() {
+  const list = $('sideList'), q = S.query.trim().toLowerCase();
+  const lit = new Set(DATA.dayCycle[S.seg] ? DATA.dayCycle[S.seg].items : []);
+  const match = (...s) => !q || s.some(x => x && x.toLowerCase().includes(q));
+  let h = '';
+  if (S.tab === 'topics') {
+    ISL.forEach(is => {
+      const items = is.items.map((it, k) => ({ it, k })).filter(({ it }) => match(it.name, it.en, it.desc, it.descEn) || match(is.name, is.en));
+      if (!items.length) return;
+      h += `<details${q ? ' open' : ''} data-isl="${is.id}"><summary><span class="no">${String(is.no).padStart(2, '0')}</span><span class="dot" style="background:${is.color}"></span><span>${esc(nm(is))}</span><span class="cnt">${items.length}</span></summary>
+        <ul class="itemlist">${items.map(({ it, k }) => `<li><button class="rowbtn${lit.has(it.id) ? ' lit' : ''}" type="button" data-item="${it.id}"><span class="n">${CIRCLED[k]}</span><span class="t">${esc(nm(it))}</span></button></li>`).join('')}</ul></details>`;
+    });
+  } else {
+    const fl = DATA.flows.filter(f => match(f.cargo, f.cargoEn, ISLAND[f.from].name, ISLAND[f.to].name, ISLAND[f.from].en, ISLAND[f.to].en));
+    h = `<ul class="itemlist">${fl.map(f => `<li><button class="rowbtn" type="button" data-flow="${f.id}"><i class="swatch ${f.status}" style="width:26px;flex:none"></i><span class="t">${esc(nm(ISLAND[f.from]))} → ${esc(nm(ISLAND[f.to]))}<br><span class="disc">${esc(tr(f.cargo, f.cargoEn))} · ${f.roles.map(r => esc(nm(DATA.roles[r]))).join('、')}</span></span></button></li>`).join('')}</ul>`;
+  }
+  list.innerHTML = h || `<p class="empty">${tr('找不到符合的項目，換個關鍵字試試。', 'Nothing matches. Try another keyword.')}</p>`;
+  renderSideActive();
+}
+function renderSideActive() {
+  const sel = S.sel;
+  $('sideList').querySelectorAll('[data-item]').forEach(b => b.setAttribute('aria-current', sel && sel.kind === 'item' && sel.id === b.dataset.item ? 'true' : 'false'));
+  if (sel && (sel.kind === 'island' || sel.kind === 'item')) {
+    const isl = sel.kind === 'island' ? sel.id : ITEM[sel.id].island.id;
+    const d = $('sideList').querySelector(`details[data-isl="${isl}"]`); if (d) d.open = true;
+  }
+}
+function renderLog() {
+  const f = S.logFilter;
+  const items = LOG.filter(e => f === 'all' || e.flow === f).slice(0, 30);
+  $('logList').innerHTML = items.length ? items.map(e => `<li class="${e.type}"><time>${e.t}</time><span>${esc(logText(e))}</span></li>`).join('') : `<li><time>--:--</time><span>${tr('等待小人到站…', 'Waiting for couriers to arrive…')}</span></li>`;
+}
+function renderLogFilter() {
+  $('logFilter').innerHTML = `<option value="all">${tr('全部協作線', 'All links')}</option>` + DATA.flows.map(f => `<option value="${f.id}">${esc(nm(ISLAND[f.from]))} → ${esc(nm(ISLAND[f.to]))}</option>`).join('');
+  $('logFilter').value = S.logFilter;
+}
+function updateHud() {
+  $('clockTime').textContent = hhmm(S.min);
+  const seg = DATA.dayCycle[S.seg];
+  $('segName').textContent = seg ? tr(seg.name, seg.en) : '';
+  $('segName').title = seg ? tr(seg.note, seg.noteEn) : '';
+}
+function pressToggle(k, on) { const b = document.querySelector(`#toggles [data-k="${k}"]`); if (b) b.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+function applyStaticLang() {
+  document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant-TW';
+  document.querySelectorAll('[data-en]').forEach(el => { if (el.dataset.zh === undefined) el.dataset.zh = el.textContent; el.textContent = LANG === 'en' ? el.dataset.en : el.dataset.zh; });
+  document.querySelectorAll('[data-en-ph]').forEach(el => { if (el.dataset.zhPh === undefined) el.dataset.zhPh = el.placeholder; el.placeholder = LANG === 'en' ? el.dataset.enPh : el.dataset.zhPh; });
+  $('btnLang').textContent = LANG === 'en' ? '中' : 'EN';
+  $('btnLang').setAttribute('aria-label', LANG === 'en' ? '切換為中文' : 'Switch to English');
+  $('siteLink').href = tr(DATA.city.site, DATA.city.siteEn);
+  document.title = tr('證交所政策島', 'TWSE Policy Isles');
+}
+function setLang(l) {
+  LANG = l; try { localStorage.setItem('twse-city-lang', l); } catch (e) { }
+  applyStaticLang(); updateLabelText(); updateBubbleText(); renderSide(); renderLogFilter(); renderLog(); updateHud(); if (S.sel) openCard();
+  panelsDirty = true; S.dirty = true;
+}
+
+// 手機 bottom sheet
+function makeSheet(el) {
+  const handle = el.querySelector('.handle'); let y0 = 0, h0 = 0, drag = false;
+  handle.addEventListener('pointerdown', e => { if (!isMobile()) return; drag = true; y0 = e.clientY; h0 = el.getBoundingClientRect().height; handle.setPointerCapture(e.pointerId); });
+  handle.addEventListener('pointermove', e => { if (!drag) return; const H = $('app').clientHeight; el.style.height = clamp(h0 + (y0 - e.clientY), 60, H) + 'px'; panelsDirty = true; S.dirty = true; });
+  handle.addEventListener('pointerup', e => {
+    if (!drag) return; drag = false; const H = $('app').clientHeight, h = el.getBoundingClientRect().height;
+    if (h > H * .8) el.style.height = '100%';
+    else if (h < H * .16) { el.style.height = ''; if (el.id === 'card') clearSelection(); else setSide(false); }
+    panelsDirty = true; S.dirty = true;
+  });
+}
+function applyLayout() {
+  const m = isMobile();
+  ['side', 'card'].forEach(id => $(id).classList.toggle('sheet', m));
+  if (!m) { $('side').style.height = ''; $('card').style.height = ''; }
+  panelsDirty = true; S.dirty = true;
+}
+function setSide(open) {
+  S.sideOpen = open; $('side').hidden = !open; $('btnList').setAttribute('aria-pressed', open ? 'true' : 'false');
+  document.body.classList.toggle('side-open', open); if (open && isMobile()) $('side').style.height = '';
+  panelsDirty = true; S.dirty = true;
+}
+
+function setTime(min, swing = true) {
+  const prev = S.min;
+  S.min = ((min % 1440) + 1440) % 1440;
+  if (swing && exchangeClock) { for (const m of [540, 810]) { if (crossed(prev, S.min, m)) exchangeClock.swing = 1; } }
+  applyTime(S.min);
+  const seg = currentSeg(); if (seg !== S.seg) { S.seg = seg; recolor(); renderSideLit(); if (S.sel && S.sel.kind === 'island') openCard(); }
+  updateHud(); S.dirty = true;
+}
+function crossed(a, b, m) { if (a === b) return a === m; if (b >= a) return a < m && m <= b; return a < m || m <= b; }
+function renderSideLit() { const lit = new Set(DATA.dayCycle[S.seg] ? DATA.dayCycle[S.seg].items : []); document.querySelectorAll('.rowbtn[data-item]').forEach(b => b.classList.toggle('lit', lit.has(b.dataset.item))); }
+
+function bindUI() {
+  $('btnHome').addEventListener('click', () => { clearSelection(); goHome(); });
+  $('btnList').addEventListener('click', () => setSide(!S.sideOpen));
+  $('btnHelp').addEventListener('click', () => { $('help').hidden = false; $('helpOk').focus(); });
+  $('helpOk').addEventListener('click', () => { $('help').hidden = true; try { localStorage.setItem('twse-city-help-v1', '1'); } catch (e) { } });
+  $('btnLang').addEventListener('click', () => setLang(LANG === 'en' ? 'zh' : 'en'));
+  $('cardClose').addEventListener('click', clearSelection);
+  $('search').addEventListener('input', e => { S.query = e.target.value; renderSide(); });
+  $('tabTopics').addEventListener('click', () => { S.tab = 'topics'; $('tabTopics').setAttribute('aria-pressed', 'true'); $('tabFlows').setAttribute('aria-pressed', 'false'); renderSide(); });
+  $('tabFlows').addEventListener('click', () => { S.tab = 'flows'; $('tabFlows').setAttribute('aria-pressed', 'true'); $('tabTopics').setAttribute('aria-pressed', 'false'); renderSide(); });
+  $('logFilter').addEventListener('change', e => { S.logFilter = e.target.value; renderLog(); });
+  const delegate = e => {
+    const t = e.target.closest('[data-item],[data-flow],[data-island]'); if (!t) return;
+    if (t.dataset.item) selectItem(t.dataset.item); else if (t.dataset.flow) selectFlow(t.dataset.flow); else selectIsland(t.dataset.island);
+    if (isMobile() && t.closest('#side')) setSide(false);
+  };
+  $('sideList').addEventListener('click', delegate); $('cardBody').addEventListener('click', delegate);
+  document.querySelectorAll('#timeBtns [data-min]').forEach(b => b.addEventListener('click', () => setTime(+b.dataset.min)));
+  document.querySelectorAll('#toggles [data-k]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.k;
+    if (k === 'bird') { if (S.bird) { setBird(false); goHome(); } else { clearSelection(); setBird(true); } return; }
+    S[k] = !S[k]; pressToggle(k, S[k]);
+    if (k === 'flows') updateFlowVisibility();
+    if (k === 'log') { $('log').hidden = !S.log; if (S.log) renderLog(); panelsDirty = true; }
+    S.dirty = true;
+  }));
+  $('hudBtn').addEventListener('click', () => { const o = !$('hud').classList.contains('open'); $('hud').classList.toggle('open', o); $('hudBtn').setAttribute('aria-expanded', o ? 'true' : 'false'); panelsDirty = true; S.dirty = true; });
+  makeSheet($('side')); makeSheet($('card'));
+  window.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input,select,textarea')) return;
+    if (e.key === 'Escape') { if (!$('help').hidden) { $('help').hidden = true; return; } clearSelection(); return; }
+    const k = { ArrowLeft: [-.12, 0], ArrowRight: [.12, 0], ArrowUp: [0, -.08], ArrowDown: [0, .08] }[e.key];
+    if (!k) return; e.preventDefault(); S.fly = null; controls.enabled = true;
+    const off = camera.position.clone().sub(controls.target), sp = new THREE.Spherical().setFromVector3(off);
+    sp.theta += k[0]; sp.phi = clamp(sp.phi + k[1], controls.minPolarAngle, controls.maxPolarAngle);
+    camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(sp)); S.dirty = true;
+  });
+  // 點擊：移動 ≤ 6px 才 raycast
+  const el = renderer.domElement; let down = null;
+  el.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; if (S.fly) { S.fly = null; controls.enabled = true; } });
+  el.addEventListener('pointerup', e => { if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null; if (moved <= 6) pick(e); });
+}
+function pick(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const targets = [...kitMeshes.filter(m => m.visible), ...islandCaps, ...FLOWLINES.filter(t => t.visible)];
+  if (S.walkers) { PEOPLE.body.computeBoundingSphere(); PEOPLE.head.computeBoundingSphere(); targets.push(PEOPLE.body, PEOPLE.head); }
+  const hits = ray.intersectObjects(targets, false);
+  for (const h of hits) {
+    const o = h.object;
+    if (o.userData.people) { selectWalker(h.instanceId); return; }
+    if (o.userData.flow) { selectFlow(o.userData.flow); return; }
+    if (o.userData.kit) {
+      const ow = o.userData.owners[h.instanceId]; if (!ow) continue;
+      if (ow.startsWith('item:')) { selectItem(ow.slice(5)); return; }
+      if (ow.startsWith('island:')) { selectIsland(ow.slice(7)); return; }
+    }
+    if (o.userData.cap) { let best = null, bd = 1e9; ISL.forEach(is => { const d = Math.hypot(is.pos.x - h.point.x, is.pos.z - h.point.z); if (d < bd) { bd = d; best = is; } }); if (best) selectIsland(best.id); return; }
+  }
+  clearSelection();
+}
+
+// ====================================================================
+// 主迴圈
+// ====================================================================
+let lastT = 0;
+function tick(dt) {
+  const animate = !S.paused && !S.reduced;
+  if (animate) {
+    S.time += dt;
+    setTime(S.min + dt * 10);
+    waterMats.forEach(m => m.uniforms.uTime.value = S.time);
+    FLOWLINES.forEach(t => t.material.uniforms.uTime.value = S.time);
+    updateClouds(dt); updateBoats(dt);
+    S.dirty = true;
+  }
+  stepFly(dt);
+  if (exchangeClock && exchangeClock.swing > 0) {
+    if (S.reduced) exchangeClock.swing = 0;
+    else { exchangeClock.swing = Math.max(0, exchangeClock.swing - dt / 2.4); const s = exchangeClock.swing; exchangeClock.pivot.rotation.z = Math.sin((1 - s) * Math.PI * 7) * .28 * s; S.dirty = true; }
+    if (exchangeClock.swing === 0) exchangeClock.pivot.rotation.z = 0;
+  }
+  if (controls.update()) S.dirty = true;
+  if (S.dirty) {
+    updateWalkers(dt, animate);
+    const d = camera.position.distanceTo(controls.target);
+    smallMeshes.forEach(m => m.visible = d < 26);
+    PEOPLE.all.forEach(m => m.visible = S.walkers);
+    renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
+    layoutLabels();
+    S.dirty = false;
+  }
+}
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(.08, Math.max(0, (now - (lastT || now)) / 1000)); lastT = now;
+  tick(dt);
+}
+
+function resize() {
+  const w = glHost.clientWidth, h = glHost.clientHeight; if (!w || !h) return;
+  renderer.setSize(w, h, false); labelRenderer.setSize(w, h);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  if (S.mode === 'home' && !S.fly) { camera.position.copy(center).addScaledVector(HOME_DIR, homeDistance()); controls.target.copy(center); controls.update(); }
+  applyLayout(); panelsDirty = true; ISLAND_LABELS.forEach(L => L.wFull = 0); S.dirty = true;
+}
+
+function showError(msg) {
+  const box = $('loadErr'); box.hidden = false;
+  box.textContent = tr('無法載入 3D 場景：', 'The 3D scene could not load: ') + msg + tr('。請確認瀏覽器支援 WebGL，並允許載入 cdn.jsdelivr.net 的程式庫後重新整理。', '. Check that WebGL is enabled and cdn.jsdelivr.net is reachable, then reload.');
+  $('loadMsg').textContent = tr('載入失敗', 'Loading failed');
+}
+
+async function boot() {
+  applyStaticLang();
+  try {
+    const [three, oc, css2d, rbg, bgu, sn] = await Promise.all([
+      import('three'), import('three/addons/controls/OrbitControls.js'), import('three/addons/renderers/CSS2DRenderer.js'),
+      import('three/addons/geometries/RoundedBoxGeometry.js'), import('three/addons/utils/BufferGeometryUtils.js'), import('three/addons/math/SimplexNoise.js')
+    ]);
+    THREE = three; OrbitControls = oc.OrbitControls; CSS2DRenderer = css2d.CSS2DRenderer; CSS2DObject = css2d.CSS2DObject;
+    RoundedBoxGeometry = rbg.RoundedBoxGeometry; BGU = bgu; SimplexNoise = sn.SimplexNoise;
+  } catch (e) { showError(tr('程式庫下載失敗', 'library download failed')); return; }
+  try {
+    initMath(); initApp();
+    glHost = $('gl');
+    const probe = document.createElement('canvas');
+    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) throw new Error(tr('此瀏覽器未啟用 WebGL', 'WebGL is not available'));
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile() ? 1.4 : 1.75));
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1;
+    glHost.appendChild(renderer.domElement);
+    labelRenderer = new CSS2DRenderer({ element: $('labels') });
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(32, 1, .3, 320);
+    buildGeometries();
+    buildWorld();
+    buildBackdrop();
+    buildPeopleAndFlows();
+    buildLabels();
+    controls = new OrbitControls(camera, renderer.domElement);
+    Object.assign(controls, { enableDamping: true, dampingFactor: .07, enablePan: false, minPolarAngle: 25 * DEG, maxPolarAngle: 70 * DEG, minDistance: 3, maxDistance: 70 });
+    controls.addEventListener('change', () => { S.dirty = true; });
+    controls.target.copy(center);
+    camera.position.copy(center).addScaledVector(HOME_DIR, 40);
+    // reduced motion
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    S.reduced = mq.matches;
+    mq.addEventListener('change', e => { S.reduced = e.matches; FLOWLINES.forEach(t => t.material.uniforms.uTime.value = 0); S.dirty = true; });
+    window.matchMedia('(max-width: 800px)').addEventListener('change', () => { applyLayout(); if (isMobile()) setSide(false); });
+    bindUI(); applyLayout();
+    if (isMobile()) setSide(false); else setSide(true);
+    renderLogFilter(); renderLog();
+    S.seg = currentSeg(); setTime(S.min, false); recolor(); renderSide();
+    new ResizeObserver(resize).observe(glHost); resize();
+    goHome(); if (S.reduced) { camera.position.copy(center).addScaledVector(HOME_DIR, homeDistance()); }
+    tick(0);
+    $('loader').classList.add('done'); setTimeout(() => { $('loader').hidden = true; }, 600);
+    let seen = false; try { seen = localStorage.getItem('twse-city-help-v1') === '1'; } catch (e) { }
+    if (!seen) $('help').hidden = false;
+    window.__city = { S, step: (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) tick(dt); }, selectIsland, selectItem, selectFlow, selectWalker, setTime, goHome, info: () => ({ draws: renderer.info.render.calls, tris: renderer.info.render.triangles, walkers: WALKERS.length, kit: kitMeshes.length }) };
+    requestAnimationFrame(loop);
+  } catch (e) { console.error(e); showError(e && e.message ? e.message : String(e)); }
+}
+boot();
+</script>
+</body>
+</html>

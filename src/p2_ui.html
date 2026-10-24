@@ -1,0 +1,299 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 版面概念：整頁是一座黏土模型城，介面像擺在桌邊的紙卡與木製按鈕，浮在 3D 場景上。 */
+:root {
+  --coral: #db6a41; --ink: #211d1d; --cream: #fff8f4; --yellow: #fcea8b;
+  --stone: #c5b5a7; --green: #71806a; --teal: #3e7c8c;
+  --paper: rgba(255, 250, 245, .80); --paper-solid: #fffaf5; --line: rgba(33, 29, 29, .10);
+  --muted: #6b5f57; --chipshadow: 0 2px 8px #4a2a1414;
+  --shadow: 0 1px 2px #4a2a1414, 0 8px 22px #4a2a1418, 0 28px 64px #4a2a1414;
+  --ui: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --num: Georgia, "Times New Roman", serif;
+  --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px);
+  --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { margin: 0; overflow: hidden; color: var(--ink); font-family: var(--ui); font-size: 14px;
+  background: radial-gradient(120% 90% at 50% 38%, #fffdf9 0%, #edddcf 100%); }
+#app { position: fixed; inset: 0; overflow: hidden; }
+#gl { position: absolute; inset: 0; }
+#gl canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+#labels { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+#brand, #tools, #card, #side, #hud, #log, #legend, #hudBtn { z-index: 3; }
+[hidden] { display: none !important; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+.eyebrow { font: 700 10px/1.2 var(--mono); letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+.disc { font-size: 11px; line-height: 1.5; color: var(--muted); }
+.disc a { color: var(--coral); text-underline-offset: 2px; }
+
+/* ---------- 按鈕與 chip ---------- */
+.btn { min-height: 44px; min-width: 44px; border-radius: 9px; border: 1px solid var(--line); background: var(--paper-solid);
+  padding: 0 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: var(--chipshadow); transition: background .15s, color .15s; }
+.btn:hover { background: var(--yellow); }
+.btn:active, .btn[aria-pressed="true"] { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.btn:focus-visible, .chip:focus-visible, .rowbtn:focus-visible, summary:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; border: 0; background: #fff; box-shadow: var(--chipshadow);
+  padding: 6px 12px; font-size: 12px; cursor: pointer; min-height: 32px; }
+.chip.cream { background: var(--cream); }
+.chip:hover { background: var(--yellow); }
+.status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 9px; border-radius: 999px; background: var(--cream); white-space: nowrap; }
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.status.live { color: #4f6b44; } .status.progress { color: #b5562f; } .status.plan { color: #5a6798; }
+
+/* ---------- 品牌卡與工具列 ---------- */
+#brand { position: absolute; left: calc(16px + var(--sl)); top: calc(16px + var(--st)); width: 286px; padding: 14px 16px 12px;
+  border-radius: 18px; background: var(--paper); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow); }
+#brand h1 { margin: 2px 0 0; font-size: 26px; line-height: 1.1; letter-spacing: 1px; font-weight: 800; }
+#brand h1 small { display: block; margin-top: 4px; font-size: 14px; font-weight: 600; color: var(--coral); letter-spacing: 3px; }
+#brand .disc { margin-top: 8px; }
+#tools { position: absolute; left: calc(16px + var(--sl)); top: calc(168px + var(--st)); display: flex; gap: 8px; }
+#tools .btn { font-size: 13px; }
+
+/* ---------- 詳細卡片 ---------- */
+#card { position: absolute; left: calc(16px + var(--sl)); top: calc(228px + var(--st)); bottom: calc(104px + var(--sb)); width: 340px;
+  border-radius: 22px; background: var(--paper-solid); box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+#card .body { overflow-y: auto; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 14px; overscroll-behavior: contain; }
+#card .close { position: absolute; right: 10px; top: 10px; z-index: 2; background: var(--cream); }
+#card h2 { margin: 4px 0 0; font-size: 22px; line-height: 1.25; text-wrap: balance; padding-right: 40px; }
+#card p { margin: 0; line-height: 1.65; }
+#card .thumb { width: 160px; height: 160px; border-radius: 16px; background: radial-gradient(circle at 50% 40%, #fff, #f1e5d8); align-self: center; display: block; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+.tile { background: var(--cream); border-radius: 12px; padding: 10px; min-width: 0; }
+.tile b { display: block; font: italic 400 22px/1.15 var(--num); color: var(--coral); overflow-wrap: anywhere; }
+.tile span { display: block; margin-top: 4px; font-size: 11px; line-height: 1.4; color: var(--muted); }
+.facts { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; line-height: 1.55; }
+.facts .tbc { color: #b5562f; font-size: 12px; }
+.timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; position: relative; }
+.timeline div { text-align: center; font-size: 12px; padding-top: 18px; position: relative; color: var(--muted); }
+.timeline div::before { content: ""; position: absolute; left: 50%; top: 4px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--stone); }
+.timeline div::after { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--stone); z-index: -1; }
+.timeline div.on { color: var(--ink); font-weight: 700; }
+.timeline div.on::before { background: var(--coral); box-shadow: 0 0 0 4px #db6a4133; }
+.linkbtn { text-decoration: none; background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.linkbtn:hover { background: var(--coral); color: #fff; }
+.itemlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.rowbtn { width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; min-height: 44px; border: 0; background: transparent;
+  border-radius: 10px; padding: 6px 8px; cursor: pointer; }
+.rowbtn:hover { background: var(--cream); }
+.rowbtn .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: var(--cream); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+.rowbtn .t { flex: 1; min-width: 0; }
+.rowbtn.lit .n { background: #e7cf3f; color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ibadge { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font: italic 22px var(--num); color: var(--ink); box-shadow: inset 0 -3px 0 #0000001a; }
+.cardhead { display: flex; gap: 12px; align-items: center; }
+.flowpath { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.swatch { display: inline-block; width: 42px; height: 0; border-top: 3px solid var(--coral); vertical-align: middle; }
+.swatch.thematic { border-top-style: dashed; } .swatch.pending { border-top-style: dotted; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; }
+
+/* ---------- 右側清單 ---------- */
+#side { position: absolute; right: calc(16px + var(--sr)); top: calc(16px + var(--st)); bottom: calc(104px + var(--sb)); width: 318px;
+  border-radius: 20px; background: rgba(255, 250, 245, .72); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+#side header { padding: 14px 14px 8px; display: flex; flex-direction: column; gap: 10px; }
+#side .row { display: flex; gap: 8px; align-items: center; }
+#search { flex: 1; min-width: 0; min-height: 44px; border-radius: 9px; border: 1px solid var(--line); background: #fff; padding: 0 12px; font: inherit; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#sideList { overflow-y: auto; padding: 4px 10px 14px; overscroll-behavior: contain; }
+#sideList details { border-radius: 12px; }
+#sideList details[open] { background: rgba(255, 255, 255, .55); }
+#sideList summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 8px; border-radius: 12px; }
+#sideList summary::-webkit-details-marker { display: none; }
+#sideList summary:hover { background: var(--cream); }
+#sideList summary .no { font: 700 11px var(--mono); letter-spacing: 1px; width: 26px; color: var(--muted); }
+#sideList summary .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+#sideList summary .cnt { margin-left: auto; font-size: 11px; color: var(--muted); }
+#sideList .itemlist { padding: 0 4px 8px 30px; }
+.empty { padding: 20px 10px; color: var(--muted); text-align: center; line-height: 1.6; }
+
+/* ---------- HUD ---------- */
+#hud { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(16px + var(--sb)); display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 999px; background: var(--paper); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow); max-width: calc(100% - 32px); }
+#hud .clock { display: flex; flex-direction: column; padding: 0 10px 0 12px; min-width: 104px; }
+#hud .clock b { font: italic 26px/1 var(--num); font-variant-numeric: tabular-nums; }
+#hud .clock span { font-size: 11px; color: var(--muted); margin-top: 3px; white-space: nowrap; }
+#hud .grp { display: flex; gap: 4px; }
+#hud .sep { width: 1px; align-self: stretch; background: var(--line); margin: 4px 2px; }
+#hud .tbtn { flex-direction: column; gap: 1px; min-width: 52px; padding: 4px 6px; font-size: 11px; line-height: 1.15; border-radius: 9px; }
+#hud .tbtn em { font-style: normal; font: 600 12px var(--mono); }
+#hud .tg { flex-direction: column; gap: 2px; min-width: 48px; padding: 4px 4px; font-size: 11px; border-radius: 9px; }
+#hud .tg svg { width: 18px; height: 18px; }
+#hudBtn { display: none; }
+
+/* ---------- 市場日誌 ---------- */
+#log { position: absolute; top: calc(16px + var(--st)); right: calc(16px + var(--sr)); width: 300px; max-height: 46%; border-radius: 18px; background: var(--paper-solid);
+  box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+body.side-open #log { right: calc(350px + var(--sr)); }
+#log header { padding: 12px 14px 8px; display: flex; align-items: center; gap: 8px; }
+#log header b { font-size: 15px; }
+.live { display: inline-flex; align-items: center; gap: 5px; font: 700 10px var(--mono); letter-spacing: 1.5px; color: #3f7a45; }
+.live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #48a85a; animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+#logFilter { margin-left: auto; min-height: 32px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 12px; max-width: 130px; }
+#logList { list-style: none; margin: 0; padding: 0 12px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+#logList li { display: grid; grid-template-columns: 44px 1fr; gap: 8px; font-size: 12px; line-height: 1.45; padding: 6px 8px; border-radius: 10px; background: var(--cream); }
+#logList li time { font: 600 11px var(--mono); color: var(--muted); padding-top: 1px; }
+#logList li.handoff { background: #fdf3c4; }
+
+/* ---------- 圖例 ---------- */
+#legend { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(86px + var(--sb)); display: flex; gap: 14px; align-items: center;
+  padding: 8px 14px; border-radius: 999px; background: var(--paper); backdrop-filter: blur(10px); box-shadow: var(--chipshadow); font-size: 12px; white-space: nowrap; }
+
+/* ---------- 3D 標籤 ---------- */
+.ilabel { pointer-events: auto; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 6px; border-radius: 999px;
+  background: #fffaf5; box-shadow: 0 2px 8px #4a2a1426; font-size: 13px; font-weight: 700; white-space: nowrap; border: 0; transition: opacity .2s; font-family: var(--ui); }
+.ilabel .num { font: 700 11px var(--mono); background: var(--ink); color: var(--cream); border-radius: 999px; padding: 2px 6px; }
+.ilabel .txt { display: inline-block; overflow: hidden; max-width: 14em; transition: max-width .2s; }
+.ilabel.c-num { padding-right: 6px; gap: 0; } .ilabel.c-num .txt { max-width: 0; }
+.ilabel.c-hide, .pin.c-hide { visibility: hidden; }
+.ilabel.sel { background: var(--ink); color: var(--cream); } .ilabel.sel .num { background: var(--coral); }
+.ilabel.dim { opacity: .45; }
+.ilabel.lit .num { background: #e7cf3f; color: var(--ink); }
+.pin { pointer-events: auto; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; background: var(--coral); color: #fff; border: 2px solid #fff;
+  display: grid; place-items: center; font: 700 13px var(--ui); box-shadow: 0 2px 6px #4a2a1433; padding: 0; }
+.pin.sel { background: var(--ink); }
+.bubble { pointer-events: none; padding: 3px 8px; border-radius: 999px; background: #fffaf5; font-size: 11px; white-space: nowrap; box-shadow: 0 2px 6px #4a2a1426; transform: translateY(-34px); }
+
+/* ---------- 載入與說明 ---------- */
+#loader { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; z-index: 20;
+  background: radial-gradient(120% 90% at 50% 38%, #fffdf9 0%, #edddcf 100%); transition: opacity .5s; }
+#loader h2 { margin: 0; font-size: clamp(36px, 8vw, 64px); font-weight: 800; letter-spacing: 4px; }
+#loader p { margin: 10px 0 0; color: var(--muted); }
+#loader .err { margin-top: 18px; max-width: 460px; color: #9b3b1c; background: #fff; border-radius: 12px; padding: 12px 16px; line-height: 1.6; box-shadow: var(--chipshadow); }
+#loader.done { opacity: 0; pointer-events: none; }
+#help { position: absolute; inset: 0; z-index: 15; display: grid; place-items: center; background: #2a1d1633; padding: 16px; }
+#help .box { width: min(440px, 100%); background: var(--paper-solid); border-radius: 22px; box-shadow: var(--shadow); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+#help h2 { margin: 0; font-size: 20px; }
+#help ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; counter-reset: s; }
+#help li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; line-height: 1.55; counter-increment: s; }
+#help li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; background: var(--yellow); display: grid; place-items: center; font: italic 18px var(--num); }
+#help .actions { display: flex; justify-content: flex-end; }
+.handle { display: none; }
+
+@media (prefers-reduced-motion: reduce) { .live::before { animation: none; } * { transition: none !important; } }
+
+/* ---------- 手機版 ---------- */
+@media (max-width: 800px) {
+  #brand { width: auto; right: calc(76px + var(--sr)); padding: 10px 12px; }
+  #brand h1 { font-size: 20px; } #brand h1 small { font-size: 12px; letter-spacing: 2px; }
+  #brand .disc { font-size: 10px; }
+  #tools { left: auto; right: calc(16px + var(--sr)); top: calc(16px + var(--st)); flex-direction: column; }
+  #tools .btn { padding: 0 8px; font-size: 12px; min-width: 50px; }
+  .sheet { left: 0 !important; right: 0 !important; top: auto !important; bottom: 0 !important; width: auto !important;
+    border-radius: 20px 20px 0 0 !important; padding-bottom: var(--sb); max-height: calc(100% - var(--st)); }
+  #side.sheet { height: 52%; } #card.sheet { height: 34%; z-index: 6; }
+  .handle { display: block; flex: none; height: 26px; cursor: grab; touch-action: none; position: relative; }
+  .handle::after { content: ""; position: absolute; left: 50%; top: 10px; width: 44px; height: 5px; margin-left: -22px; border-radius: 3px; background: var(--stone); }
+  #hud { display: none; left: calc(16px + var(--sl)); right: calc(16px + var(--sr)); transform: none; bottom: calc(76px + var(--sb)); border-radius: 18px; flex-wrap: wrap; justify-content: center; max-width: none; }
+  #hud.open { display: flex; }
+  #hud .sep { display: none; }
+  #hudBtn { display: inline-flex; position: absolute; right: calc(16px + var(--sr)); bottom: calc(16px + var(--sb)); z-index: 5; }
+  #log, body.side-open #log { left: calc(16px + var(--sl)); right: calc(16px + var(--sr)); width: auto; top: auto; bottom: calc(76px + var(--sb)); max-height: 34%; }
+  #legend { bottom: calc(76px + var(--sb)); left: calc(16px + var(--sl)); transform: none; flex-wrap: wrap; white-space: normal; border-radius: 14px; }
+}
+</style>
+
+<div id="app">
+  <div id="gl"></div>
+  <div id="labels"></div>
+
+  <header id="brand">
+    <div class="eyebrow" data-en="Non-official explainer">非官方教育導覽</div>
+    <h1><span data-en="Capital Market City">資本市場城</span><small data-en="TWSE Policy Isles">證交所政策島</small></h1>
+    <p class="disc"><span data-en="Unofficial demo. Figures follow announcements on the">非官方示範，資料以證交所官網公告為準：</span>
+      <a id="siteLink" href="https://www.twse.com.tw/zh/index.html" target="_blank" rel="noopener" data-en="TWSE website">twse.com.tw</a></p>
+  </header>
+
+  <nav id="tools" aria-label="檢視工具">
+    <button class="btn" id="btnHome" type="button" data-en="Overview">全景</button>
+    <button class="btn" id="btnList" type="button" aria-pressed="true" data-en="List">清單</button>
+    <button class="btn" id="btnHelp" type="button" aria-label="說明" data-en="?">?</button>
+    <button class="btn" id="btnLang" type="button" aria-label="切換語言">EN</button>
+  </nav>
+
+  <aside id="card" hidden aria-live="polite">
+    <div class="handle" aria-hidden="true"></div>
+    <button class="btn close" id="cardClose" type="button" aria-label="關閉卡片">✕</button>
+    <div class="body" id="cardBody"></div>
+  </aside>
+
+  <aside id="side" aria-label="政策清單">
+    <div class="handle" aria-hidden="true"></div>
+    <header>
+      <div class="row">
+        <input id="search" type="search" autocomplete="off" placeholder="搜尋制度、專區…" data-en-ph="Search policies…">
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="btn" id="tabTopics" type="button" role="tab" aria-pressed="true" data-en="Topics">政策主題</button>
+        <button class="btn" id="tabFlows" type="button" role="tab" aria-pressed="false" data-en="Links">協作關係</button>
+      </div>
+    </header>
+    <div id="sideList"></div>
+  </aside>
+
+  <section id="log" hidden aria-label="市場日誌">
+    <header><b data-en="Market log">市場日誌</b><span class="live">LIVE</span>
+      <select id="logFilter" aria-label="依協作線篩選"></select></header>
+    <ul id="logList"></ul>
+  </section>
+
+  <div id="legend" hidden>
+    <span><i class="swatch"></i> <span data-en="In force">已實施</span></span>
+    <span><i class="swatch thematic"></i> <span data-en="In progress">推動中</span></span>
+    <span><i class="swatch pending"></i> <span data-en="Under study">研議／規劃中</span></span>
+  </div>
+
+  <div id="hud" role="toolbar" aria-label="時間與顯示">
+    <div class="clock"><b id="clockTime">08:30</b><span id="segName">盤前委託</span></div>
+    <div class="grp" id="timeBtns">
+      <button class="btn tbtn" type="button" data-min="510"><em>08:30</em><span data-en="Pre-open">盤前</span></button>
+      <button class="btn tbtn" type="button" data-min="540"><em>09:00</em><span data-en="Open">開盤</span></button>
+      <button class="btn tbtn" type="button" data-min="810"><em>13:30</em><span data-en="Close">收盤</span></button>
+      <button class="btn tbtn" type="button" data-min="1260"><em>21:00</em><span data-en="Night">夜晚</span></button>
+    </div>
+    <div class="sep"></div>
+    <div class="grp" id="toggles">
+      <button class="btn tg" type="button" data-k="names" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="6"/><path d="M8 12h8"/></svg><span data-en="Names">名牌</span></button>
+      <button class="btn tg" type="button" data-k="walkers" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v6l-3 6M12 14l3 6M8 11h8"/></svg><span data-en="Couriers">搬運</span></button>
+      <button class="btn tg" type="button" data-k="flows" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="17" r="2.5"/><circle cx="19" cy="7" r="2.5"/><path d="M7 15.5C11 14 10 9 17 8" stroke-dasharray="3 3"/></svg><span data-en="Links">協作線</span></button>
+      <button class="btn tg" type="button" data-k="paused" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6v12M15 6v12"/></svg><span data-en="Pause">暫停</span></button>
+      <button class="btn tg" type="button" data-k="bird" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M9 6l3 3 3-3"/><path d="M4 15l8-4 8 4-8 4z"/></svg><span data-en="Top view">鳥瞰</span></button>
+      <button class="btn tg" type="button" data-k="log" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg><span data-en="Log">日誌</span></button>
+    </div>
+  </div>
+  <button class="btn" id="hudBtn" type="button" aria-expanded="false"><span data-en="◷ Time">◷ 時間</span></button>
+
+  <div id="help" hidden role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="box">
+      <div class="eyebrow" data-en="How to explore">逛城方式</div>
+      <h2 id="helpTitle" data-en="Three ways to explore">三步驟逛資本市場城</h2>
+      <ol>
+        <li><span data-en="Drag to orbit, scroll or pinch to zoom. Arrow keys rotate too.">拖曳旋轉、滾輪或雙指縮放；方向鍵也能轉動鏡頭。</span></li>
+        <li><span data-en="Click an island, a building or a courier to open its card with facts and the official link.">點一座島、一棟建物或路上的小人，左側卡片會說明重點並附官網連結。</span></li>
+        <li><span data-en="Use the time bar to jump through a trading day. Highlighted buildings are active in that slot.">用下方時間列跳到盤前、開盤、收盤或夜晚，黃色亮起的建物就是該時段的主角。</span></li>
+      </ol>
+      <p class="disc" data-en="Unofficial demo. Figures follow TWSE announcements. No quotes or investment advice.">非官方示範，資料以證交所官網公告為準；不提供即時行情與投資建議。</p>
+      <div class="actions"><button class="btn linkbtn" id="helpOk" type="button" data-en="Start exploring">開始逛</button></div>
+    </div>
+  </div>
+
+  <div id="loader">
+    <div>
+      <h2 data-en="Capital Market City">資本市場城</h2>
+      <p id="loadMsg" data-en="Assembling the capital market city…">正在組合資本市場城…</p>
+      <div id="loadErr" class="err" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
