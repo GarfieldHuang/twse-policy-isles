@@ -705,7 +705,7 @@ body.side-open #log { right: calc(350px + var(--sr)); }
       <div class="eyebrow" data-en="How to explore">逛城方式</div>
       <h2 id="helpTitle" data-en="Three ways to explore">三步驟逛資本市場城</h2>
       <ol>
-        <li><span data-en="Drag to orbit, scroll or pinch to zoom. Arrow keys rotate too.">拖曳旋轉、滾輪或雙指縮放；方向鍵也能轉動鏡頭。</span></li>
+        <li><span data-en="Drag to orbit, right-drag (or two fingers) to pan, scroll or pinch to zoom. Arrow keys rotate too.">左鍵拖曳旋轉、右鍵（或雙指）拖曳平移，滾輪或雙指縮放；方向鍵也能轉動鏡頭。</span></li>
         <li><span data-en="Click an island, a building or a courier to open its card with facts and the official link.">點一座島、一棟建物或路上的小人，左側卡片會說明重點並附官網連結。</span></li>
         <li><span data-en="Use the time bar to jump through a trading day. Highlighted buildings are active in that slot.">用下方時間列跳到盤前、開盤、收盤或夜晚，黃色亮起的建物就是該時段的主角。</span></li>
       </ol>
@@ -2301,7 +2301,7 @@ function bindUI() {
   // 點擊：移動 ≤ 6px 才 raycast
   const el = renderer.domElement; let down = null;
   el.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; if (S.fly) { S.fly = null; controls.enabled = true; } });
-  el.addEventListener('pointerup', e => { if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null; if (moved <= 6) pick(e); });
+  el.addEventListener('pointerup', e => { if (!down || e.button !== 0) { down = null; return; } const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null; if (moved <= 6) pick(e); });
 }
 function pick(e) {
   const r = renderer.domElement.getBoundingClientRect();
@@ -2405,8 +2405,18 @@ async function boot() {
     buildPeopleAndFlows();
     buildLabels();
     controls = new OrbitControls(camera, renderer.domElement);
-    Object.assign(controls, { enableDamping: true, dampingFactor: .07, enablePan: false, minPolarAngle: 25 * DEG, maxPolarAngle: 70 * DEG, minDistance: 3, maxDistance: 70 });
-    controls.addEventListener('change', () => { S.dirty = true; });
+    // 右鍵（觸控為雙指）沿地面平移；目標點限制在城市周圍，避免拖到看不見城市
+    Object.assign(controls, { enableDamping: true, dampingFactor: .07, enablePan: true, screenSpacePanning: false, panSpeed: .9, minPolarAngle: 25 * DEG, maxPolarAngle: 70 * DEG, minDistance: 3, maxDistance: 70 });
+    controls.addEventListener('start', () => { if (S.mode === 'home') S.mode = 'free'; });
+    controls.addEventListener('change', () => {
+      const dx = controls.target.x - center.x, dz = controls.target.z - center.z, d = Math.hypot(dx, dz), max = 16;
+      if (d > max) {
+        const k = max / d, nx = center.x + dx * k, nz = center.z + dz * k;
+        camera.position.x += nx - controls.target.x; camera.position.z += nz - controls.target.z;
+        controls.target.x = nx; controls.target.z = nz;
+      }
+      S.dirty = true;
+    });
     controls.target.copy(center);
     camera.position.copy(center).addScaledVector(HOME_DIR, 40);
     // reduced motion
@@ -2424,7 +2434,7 @@ async function boot() {
     $('loader').classList.add('done'); setTimeout(() => { $('loader').hidden = true; }, 600);
     let seen = false; try { seen = localStorage.getItem('twse-city-help-v1') === '1'; } catch (e) { }
     if (!seen) $('help').hidden = false;
-    window.__city = { S, step: (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) tick(dt); }, selectIsland, selectItem, selectFlow, selectWalker, setTime, goHome, info: () => ({ draws: renderer.info.render.calls, tris: renderer.info.render.triangles, walkers: WALKERS.length, kit: kitMeshes.length }) };
+    window.__city = { S, step: (n = 1, dt = 1 / 30) => { for (let i = 0; i < n; i++) tick(dt); }, selectIsland, selectItem, selectFlow, selectWalker, setTime, goHome, target: () => controls.target.toArray().map(v => +v.toFixed(2)), info: () => ({ draws: renderer.info.render.calls, tris: renderer.info.render.triangles, walkers: WALKERS.length, kit: kitMeshes.length }) };
     requestAnimationFrame(loop);
   } catch (e) { console.error(e); showError(e && e.message ? e.message : String(e)); }
 }
